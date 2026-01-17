@@ -22,6 +22,9 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
+  const [approvalFilter, setApprovalFilter] = useState<
+    "all" | "approved" | "disapproved"
+  >("all");
   const [showSettings, setShowSettings] = useState(false);
   const [activeItem, setActiveItem] = useState<ContentPlanItem | null>(null);
   const { t } = useI18n();
@@ -170,6 +173,15 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
   const getPostsLabel = (count: number) =>
     t(count === 1 ? "posts.count.one" : "posts.count.other", { count });
 
+  const filteredItems =
+    approvalFilter === "all"
+      ? items
+      : items.filter((item) =>
+          approvalFilter === "approved"
+            ? Boolean(item.is_approved)
+            : !item.is_approved
+        );
+
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -206,6 +218,32 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
               {t("posts.view.calendar")}
             </button>
           </div>
+          {viewMode === "table" && (
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="approval-filter"
+                className="text-sm font-medium text-gray-600"
+              >
+                {t("table.filter.approval")}
+              </label>
+              <select
+                id="approval-filter"
+                value={approvalFilter}
+                onChange={(e) =>
+                  setApprovalFilter(
+                    e.target.value as "all" | "approved" | "disapproved"
+                  )
+                }
+                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="all">{t("table.filter.all")}</option>
+                <option value="approved">{t("table.filter.approved")}</option>
+                <option value="disapproved">
+                  {t("table.filter.disapproved")}
+                </option>
+              </select>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => setShowSettings((prev) => !prev)}
@@ -415,7 +453,7 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
       )}
       {viewMode === "table" ? (
         <ContentPlanTable
-          items={items}
+          items={filteredItems}
           onSelectionChange={handleSelectionChange}
           visibleColumns={tableColumns}
           onItemClick={handleItemClick}

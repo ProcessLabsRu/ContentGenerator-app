@@ -263,9 +263,13 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
                 )}
                 {showApproved && (
                   <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {item.is_approved
-                      ? t("table.approved.yes")
-                      : t("table.approved.no")}
+                    <input
+                      type="checkbox"
+                      checked={Boolean(item.is_approved)}
+                      disabled
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      aria-label={t("table.columns.approved")}
+                    />
                   </td>
                 )}
                 {showPainPoint && (
