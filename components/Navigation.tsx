@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Locale, useI18n } from "@/lib/i18n";
 
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
+  const { locale, setLocale, t } = useI18n();
 
   const isActive = (path: string) => pathname === path;
 
@@ -20,31 +22,27 @@ export const Navigation: React.FC = () => {
               ContentPlan
             </Link>
           </div>
-          <div className="flex items-center space-x-8">
-            <Link
-              href="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive("/")
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              Generate Plan
-            </Link>
-            <Link
-              href="/plan"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive("/plan")
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              My Plans
-            </Link>
+          <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="language-select"
+                className="text-sm text-gray-600"
+              >
+                {t("nav.language")}
+              </label>
+              <select
+                id="language-select"
+                value={locale}
+                onChange={(event) => setLocale(event.target.value as Locale)}
+                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="en">{t("nav.language.en")}</option>
+                <option value="pt-BR">{t("nav.language.ptBr")}</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
     </nav>
   );
 };
-

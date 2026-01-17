@@ -185,10 +185,15 @@ export function generateMockContentPlan(
 ): ContentPlanItem[] {
   const items: ContentPlanItem[] = [];
   const count = Math.min(formData.numberOfPublications, 15);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() + 1);
 
   for (let i = 0; i < count; i++) {
     const format = formats[Math.floor(Math.random() * formats.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const publishDate = new Date(startDate);
+    publishDate.setDate(startDate.getDate() + i);
+    const publishDateValue = publishDate.toISOString().slice(0, 10);
 
     items.push({
       id: `plan-item-${Date.now()}-${i}`,
@@ -210,9 +215,10 @@ export function generateMockContentPlan(
       ),
       cta: generateCTA(formData.purpose, formData.contentType),
       status,
+      publish_date: publishDateValue,
+      is_approved: false,
     });
   }
 
   return items;
 }
-

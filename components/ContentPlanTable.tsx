@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import { ContentPlanItem } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 
 interface ContentPlanTableProps {
   items: ContentPlanItem[];
   onSelectionChange?: (selectedIds: string[]) => void;
+  onItemClick?: (item: ContentPlanItem) => void;
+  visibleColumns?: {
+    format?: boolean;
+    status?: boolean;
+    publishDate?: boolean;
+    approved?: boolean;
+    painPoint?: boolean;
+    cta?: boolean;
+    contentOutline?: boolean;
+  };
 }
 
 const statusColors: Record<
@@ -39,8 +50,41 @@ const getFormatColors = (format: string) => {
 export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
   items,
   onSelectionChange,
+  onItemClick,
+  visibleColumns,
 }) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { t, intlLocale } = useI18n();
+  const statusLabelKey = {
+    draft: "status.draft",
+    selected: "status.selected",
+    generated: "status.generated",
+  } as const;
+  const formatPublishDate = (value?: string | null) => {
+    if (!value) return "—";
+    const core = value.slice(0, 10);
+    let date: Date;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(core)) {
+      const [year, month, day] = core.split("-").map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return "—";
+      date = parsed;
+    }
+    return new Intl.DateTimeFormat(intlLocale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  };
+  const showFormat = visibleColumns?.format ?? true;
+  const showStatus = visibleColumns?.status ?? true;
+  const showPublishDate = visibleColumns?.publishDate ?? true;
+  const showApproved = visibleColumns?.approved ?? true;
+  const showPainPoint = visibleColumns?.painPoint ?? false;
+  const showCta = visibleColumns?.cta ?? false;
+  const showContentOutline = visibleColumns?.contentOutline ?? false;
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     const newSelected = new Set(selectedIds);
@@ -73,9 +117,9 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <p>No content plan items yet.</p>
+        <p>{t("table.empty.title")}</p>
         <p className="mt-2 text-sm">
-          Generate a content plan to see items here.
+          {t("table.empty.subtitle")}
         </p>
       </div>
     );
@@ -92,32 +136,76 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
                 checked={selectedIds.size === items.length && items.length > 0}
                 onChange={(e) => handleSelectAll(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                aria-label="Select all items"
+                aria-label={t("table.selectAll")}
               />
             </th>
             <th
               scope="col"
               className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Title
+              {t("table.columns.title")}
             </th>
+            {showFormat && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.format")}
+            </th>
+            )}
+            {showStatus && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.status")}
+            </th>
+            )}
+            {showPublishDate && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.publishDate")}
+              </th>
+            )}
+            {showApproved && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.approved")}
+              </th>
+            )}
+            {showPainPoint && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.painPoint")}
+              </th>
+            )}
+            {showCta && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.cta")}
+              </th>
+            )}
+            {showContentOutline && (
+              <th
+                scope="col"
+              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {t("table.columns.contentOutline")}
+              </th>
+            )}
             <th
               scope="col"
               className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Format
-            </th>
-            <th
-              scope="col"
-              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Actions
+              {t("table.columns.actions")}
             </th>
           </tr>
         </thead>
@@ -128,7 +216,10 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             return (
               <tr
                 key={item.id}
-                className="hover:bg-gray-50 transition-colors"
+                className={`hover:bg-gray-50 transition-colors ${
+                  onItemClick ? "cursor-pointer" : ""
+                }`}
+                onClick={() => onItemClick?.(item)}
               >
                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <input
@@ -137,8 +228,9 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
                     onChange={(e) =>
                       handleCheckboxChange(item.id, e.target.checked)
                     }
+                    onClick={(e) => e.stopPropagation()}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    aria-label={`Select ${item.title}`}
+                    aria-label={t("table.selectItem", { title: item.title })}
                   />
                 </td>
                 <td className="px-4 sm:px-6 py-4">
@@ -146,27 +238,65 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
                     {item.title}
                   </div>
                 </td>
-                <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${formatColor.bg} ${formatColor.text}`}
-                  >
-                    {item.format}
-                  </span>
-                </td>
-                <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor.bg} ${statusColor.text}`}
-                  >
-                    {item.status}
-                  </span>
-                </td>
+                {showFormat && (
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${formatColor.bg} ${formatColor.text}`}
+                    >
+                      {item.format}
+                    </span>
+                  </td>
+                )}
+                {showStatus && (
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor.bg} ${statusColor.text}`}
+                    >
+                      {t(statusLabelKey[item.status])}
+                    </span>
+                  </td>
+                )}
+                {showPublishDate && (
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {formatPublishDate(item.publish_date)}
+                  </td>
+                )}
+                {showApproved && (
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.is_approved
+                      ? t("table.approved.yes")
+                      : t("table.approved.no")}
+                  </td>
+                )}
+                {showPainPoint && (
+                  <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 max-w-xs">
+                    <div className="truncate" title={item.pain_point}>
+                      {item.pain_point || "—"}
+                    </div>
+                  </td>
+                )}
+                {showCta && (
+                  <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 max-w-xs">
+                    <div className="truncate" title={item.cta}>
+                      {item.cta || "—"}
+                    </div>
+                  </td>
+                )}
+                {showContentOutline && (
+                  <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 max-w-xs">
+                    <div className="truncate" title={item.content_outline}>
+                      {item.content_outline || "—"}
+                    </div>
+                  </td>
+                )}
                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <button
                     className="text-blue-600 hover:text-blue-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled
-                    title="Actions coming soon"
+                    title={t("table.actions.comingSoon")}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    View
+                    {t("table.actions.view")}
                   </button>
                 </td>
               </tr>
@@ -177,4 +307,3 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
     </div>
   );
 };
-
