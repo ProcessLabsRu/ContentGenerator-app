@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { GenerationModal } from "@/components/GenerationModal";
+import { MedicalGenerationModal } from "@/components/MedicalGenerationModal";
 import { GenerationsList } from "@/components/GenerationsList";
 import { PostsList } from "@/components/PostsList";
 import { Button } from "@/components/ui/Button";
-import { Generation } from "@/lib/types";
+import { Generation, MedicalContentFormData } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
 export default function Home() {
@@ -18,11 +18,11 @@ export default function Home() {
     setSelectedGeneration(generation);
   };
 
-  const handleGenerationCreated = (generationId: string) => {
+  const handleGenerationCreated = (planData: MedicalContentFormData) => {
     // Trigger refresh of generations list
     setRefreshTrigger((prev) => prev + 1);
-    // Optionally fetch and select the new generation
-    // For now, just refresh the list
+    console.log("Plano criado:", planData);
+    // TODO: Aqui você pode salvar o plano no banco de dados
   };
 
   const handleRefresh = useCallback(() => {
@@ -36,17 +36,17 @@ export default function Home() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {t("app.title")}
+              {t("medical.app.title")}
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              {t("app.subtitle")}
+              {t("medical.app.subtitle")}
             </p>
           </div>
           <Button
             variant="primary"
             onClick={() => setIsModalOpen(true)}
           >
-            {t("app.createGeneration")}
+            ✨ {t("medical.app.createPlan")}
           </Button>
         </div>
       </div>
@@ -57,7 +57,7 @@ export default function Home() {
         <div className="w-80 border-r border-gray-200 bg-gray-50 overflow-y-auto">
           <div className="p-4">
             <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-              {t("sidebar.generations")}
+              {t("medical.app.generatedPlans")}
             </h2>
             <GenerationsList
               selectedId={selectedGeneration?.id || null}
@@ -76,7 +76,7 @@ export default function Home() {
       </div>
 
       {/* Modal */}
-      <GenerationModal
+      <MedicalGenerationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleGenerationCreated}

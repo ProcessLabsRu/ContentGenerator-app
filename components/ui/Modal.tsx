@@ -8,6 +8,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  size?: "small" | "medium" | "large" | "xlarge";
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -15,6 +16,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
+  size = "medium",
 }) => {
   const { t } = useI18n();
   // Close on Escape key
@@ -55,7 +57,11 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal container */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
-          className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-2xl"
+          className={`relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full ${size === "small" ? "max-w-md" :
+              size === "medium" ? "max-w-2xl" :
+                size === "large" ? "max-w-4xl" :
+                  "max-w-6xl"
+            }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
