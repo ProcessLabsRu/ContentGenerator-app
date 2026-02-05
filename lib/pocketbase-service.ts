@@ -1,0 +1,184 @@
+import { getPocketBase, getPocketBaseUrl } from './pocketbase';
+import {
+    PBGeneration,
+    PBContentPlanItem,
+    COLLECTIONS,
+} from './pocketbase-types';
+import { MedicalContentFormData } from './types';
+
+/**
+ * PocketBase Service
+ * Provides methods for interacting with PocketBase collections
+ */
+
+/**
+ * Create a new generation record
+ */
+export async function createGeneration(
+    formData: MedicalContentFormData,
+    userId?: string
+): Promise<PBGeneration> {
+    const pb = getPocketBase();
+
+    const record = await pb.collection(COLLECTIONS.GENERATIONS).create<PBGeneration>({
+        userId,
+        specialization: formData.specialization,
+        month: formData.month,
+        goals: formData.goals,
+        formatCounts: JSON.stringify(formData.formatCounts),
+        useHealthCalendar: formData.useHealthCalendar,
+        context: formData.additionalContext,
+        numberOfPublications: Object.values(formData.formatCounts).reduce((sum, val) => sum + val, 0),
+        status: 'draft',
+    });
+
+    return record;
+}
+
+/**
+ * Get all generations
+ */
+export async function getGenerations(
+    userId?: string,
+    page = 1,
+    perPage = 50
+): Promise<{ items: PBGeneration[]; totalItems: number; totalPages: number }> {
+    const pb = getPocketBase();
+
+    const filter = userId ? `userId = "${userId}"` : '';
+
+    const result = await pb.collection(COLLECTIONS.GENERATIONS).getList<PBGeneration>(page, perPage, {
+        filter,
+        sort: '-created',
+    });
+
+    return {
+        items: result.items,
+        totalItems: result.totalItems,
+        totalPages: result.totalPages,
+    };
+}
+
+/**
+ * Get a single generation by ID
+ */
+export async function getGeneration(id: string): Promise<PBGeneration> {
+    const pb = getPocketBase();
+    return await pb.collection(COLLECTIONS.GENERATIONS).getOne<PBGeneration>(id);
+}
+
+/**
+ * Update a generation
+ */
+export async function updateGeneration(
+    id: string,
+    data: Partial<PBGeneration>
+): Promise<PBGeneration> {
+    const pb = getPocketBase();
+    return await pb.collection(COLLECTIONS.GENERATIONS).update<PBGeneration>(id, data);
+}
+
+/**
+ * Delete a generation
+ */
+export async function deleteGeneration(id: string): Promise<boolean> {
+    const pb = getPocketBase();
+    return await pb.collection(COLLECTIONS.GENERATIONS).delete(id);
+}
+
+/**
+ * Create a content plan item
+ */
+export async function createContentPlanItem(
+    generationId: string,
+    itemData: Omit<PBContentPlanItem, keyof import('./pocketbase-types').PocketBaseRecord | 'generationId'>
+): Promise<PBContentPlanItem> {
+    const pb = getPocketBase();
+
+    const record = await pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).create<PBContentPlanItem>({
+        generationId,
+        ...itemData,
+    });
+
+    return record;
+}
+
+/**
+ * Get content plan items for a generation
+ */
+export async function getContentPlanItems(
+    generationId: string,
+    page = 1,
+    perPage = 100
+): Promise<{ items: PBContentPlanItem[]; totalItems: number }> {
+    const pb = getPocketBase();
+
+    const result = await pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).getList<PBContentPlanItem>(
+        page,
+        perPage,
+        {
+            filter: `generationId = "${generationId}"`,
+            sort: 'publishDate',
+        }
+    );
+
+    return {
+        items: result.items,
+        totalItems: result.totalItems,
+    };
+}
+
+/**
+ * Update a content plan item
+ */
+export async function updateContentPlanItem(
+    id: string,
+    data: Partial<PBContentPlanItem>
+): Promise<PBContentPlanItem> {
+    const pb = getPocketBase();
+    return await pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).update<PBContentPlanItem>(id, data);
+}
+
+/**
+ * Delete a content plan item
+ */
+export async function deleteContentPlanItem(id: string): Promise<boolean> {
+    const pb = getPocketBase();
+    return await pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).delete(id);
+}
+
+/**
+ * Batch create content plan items
+ */
+export async function batchCreateContentPlanItems(
+    generationId: string,
+    items: Array<Omit<PBContentPlanItem, keyof import('./pocketbase-types').PocketBaseRecord | 'generationId'>>
+): Promise<PBContentPlanItem[]> {
+    const pb = getPocketBase();
+
+    const promises = items.map(item =>
+        pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).create<PBContentPlanItem>({
+            generationId,
+            ...item,
+        })
+    );
+
+    return await Promise.all(promises);
+}
+
+/**
+ * Check PocketBase connection
+ */
+export async function checkPocketBaseConnection(): Promise<boolean> {
+    try {
+        const pb = getPocketBase();
+        await pb.health.check();
+        return true;
+    } catch (error) {
+        console.error('PocketBase connection error:', error);
+        return false;
+    }
+}
+
+// Re-export utility functions
+export { getPocketBaseUrl };
