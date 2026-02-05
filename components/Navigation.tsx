@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Locale, useI18n } from "@/lib/i18n";
+import { ConnectionIndicator } from "./ConnectionIndicator";
 
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
@@ -23,22 +24,25 @@ export const Navigation: React.FC = () => {
             </Link>
           </div>
           <div className="flex items-center">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="language-select"
-                className="text-sm text-gray-600"
-              >
-                {t("nav.language")}
-              </label>
-              <select
-                id="language-select"
-                value={locale}
-                onChange={(event) => setLocale(event.target.value as Locale)}
-                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="en">{t("nav.language.en")}</option>
-                <option value="pt-BR">{t("nav.language.ptBr")}</option>
-              </select>
+            <div className="flex items-center gap-4">
+              <ConnectionIndicator />
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="language-select"
+                  className="text-sm text-gray-600"
+                >
+                  {t("nav.language")}
+                </label>
+                <select
+                  id="language-select"
+                  value={locale}
+                  onChange={(event) => setLocale(event.target.value as Locale)}
+                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="en">{t("nav.language.en")}</option>
+                  <option value="pt-BR">{t("nav.language.ptBr")}</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
