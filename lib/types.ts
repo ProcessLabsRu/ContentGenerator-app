@@ -152,6 +152,7 @@ export type ContentTypeOption =
 export interface Generation {
   id: string;
   created_at: string;
+  updated_at: string;
   specialization: string;
   purpose: string;
   content_type: string;
