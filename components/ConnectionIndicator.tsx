@@ -55,43 +55,38 @@ export function ConnectionIndicator({ className = '' }: ConnectionIndicatorProps
     const getStatusText = () => {
         switch (status) {
             case 'checking':
-                return 'Проверка...';
-            case 'connected':
-                return 'Подключено';
+                return 'Conectando...';
             case 'error':
-                return 'Ошибка';
+                return 'Erro de conexão';
             default:
-                return 'Неизвестно';
+                return '';
         }
     };
 
-    const getStatusIcon = () => {
-        switch (status) {
-            case 'checking':
-                return '⏳';
-            case 'connected':
-                return '✓';
-            case 'error':
-                return '✗';
-            default:
-                return '?';
-        }
-    };
+    // При успешном подключении показываем только точку
+    if (status === 'connected') {
+        return (
+            <div
+                className={`flex items-center ${className}`}
+                title={url || 'PocketBase conectado'}
+            >
+                <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor()}`} />
+            </div>
+        );
+    }
 
+    // При ошибке или проверке показываем точку с текстом
     return (
         <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 ${className}`}
             title={url || 'PocketBase'}
         >
-            <div className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${getStatusColor()} ${status === 'checking' ? 'animate-pulse' : ''}`} />
+            <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${status === 'checking' ? 'animate-pulse' : ''}`} />
                 <span className="text-xs font-medium text-gray-700">
-                    {getStatusIcon()} PocketBase
+                    {getStatusText()}
                 </span>
             </div>
-            <span className="text-xs text-gray-500">
-                {getStatusText()}
-            </span>
         </div>
     );
 }
