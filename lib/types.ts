@@ -110,6 +110,7 @@ export interface MedicalContentFormData {
   formatCounts: FormatCounts;
   additionalContext: string;
   useHealthCalendar: boolean;
+  totalPublications: number;
 }
 
 // Health Calendar Event

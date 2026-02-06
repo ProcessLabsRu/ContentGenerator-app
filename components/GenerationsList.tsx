@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, MouseEvent as ReactMouseEvent } from "react";
 import { Generation } from "@/lib/types";
-import { fetchGenerations, isApiError } from "@/lib/api-client";
+import { fetchGenerations, deleteGeneration, isApiError } from "@/lib/api-client";
 import { useI18n } from "@/lib/i18n";
+import { Trash2 } from "lucide-react";
 
 interface GenerationsListProps {
   selectedId?: string | null;
@@ -39,6 +40,25 @@ export const GenerationsList: React.FC<GenerationsListProps> = ({
       setGenerations([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (e: ReactMouseEvent, id: string) => {
+    e.stopPropagation();
+
+    if (!window.confirm(t("generations.delete.confirm"))) {
+      return;
+    }
+
+    try {
+      const result = await deleteGeneration(id);
+      if (isApiError(result)) {
+        alert(result.error.message);
+      } else {
+        loadGenerations();
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete generation");
     }
   };
 
@@ -108,16 +128,35 @@ export const GenerationsList: React.FC<GenerationsListProps> = ({
 
   return (
     <div className="space-y-2">
+      <div
+        onClick={() => onSelect({ id: 'all', title: t("generations.all") } as Generation)}
+        className={`p-4 border rounded-lg cursor-pointer transition-colors relative group ${selectedId === 'all'
+          ? "border-blue-500 bg-blue-50"
+          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+          }`}
+      >
+        <div className="text-sm font-medium text-gray-900 uppercase">
+          {t("generations.all")}
+        </div>
+      </div>
+
       {generations.map((generation) => (
         <div
           key={generation.id}
           onClick={() => onSelect(generation)}
-          className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedId === generation.id
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+          className={`p-4 border rounded-lg cursor-pointer transition-colors relative group ${selectedId === generation.id
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
             }`}
         >
-          <div className="text-sm font-medium text-gray-900 mb-1">
+          <button
+            onClick={(e) => handleDelete(e, generation.id)}
+            className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+            title={t("ui.delete")}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          <div className="text-sm font-medium text-gray-900 mb-1 pr-6 uppercase">
             {generation.title || `${generation.specialization} • ${generation.purpose}`}
           </div>
           <div className="text-xs text-gray-500 mb-2">

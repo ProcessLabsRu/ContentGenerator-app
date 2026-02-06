@@ -37,9 +37,6 @@ export default function Home() {
         <div className="border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t("medical.app.title")}
-              </h1>
               <p className="text-sm text-gray-600 mt-1">
                 {t("medical.app.subtitle")}
               </p>

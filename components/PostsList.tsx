@@ -7,8 +7,10 @@ import { ContentPlanCalendar } from "./ContentPlanCalendar";
 import { ContentPlanItemModal } from "./ContentPlanItemModal";
 import {
   fetchGenerationItems,
+  fetchAllContentItems,
   updateItemStatus,
   updateItem,
+  deleteItem,
   isApiError,
 } from "@/lib/api-client";
 import { useI18n } from "@/lib/i18n";
@@ -57,14 +59,27 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
       setError(null);
 
       try {
-        const result = await fetchGenerationItems(generation.id);
+        let itemsData: ContentPlanItem[] = [];
 
-        if (isApiError(result)) {
-          setError(result.error.message);
-          setItems([]);
+        if (generation.id === "all") {
+          const result = await fetchAllContentItems();
+          if (isApiError(result)) {
+            setError(result.error.message);
+            setItems([]);
+            return;
+          }
+          itemsData = result.data.items;
         } else {
-          setItems(result.data);
+          const result = await fetchGenerationItems(generation.id);
+          if (isApiError(result)) {
+            setError(result.error.message);
+            setItems([]);
+            return;
+          }
+          itemsData = result.data;
         }
+
+        setItems(itemsData);
       } catch (err: any) {
         setError(err.message || t("posts.loadError"));
         setItems([]);
@@ -74,20 +89,20 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
     };
 
     loadItems();
-  }, [generation]);
+  }, [generation, t]);
 
   const handleSelectionChange = async (selectedIds: string[]) => {
     if (!generation) return;
 
     const previousItems = items;
-    
+
     // Update items optimistically
     const updatedItems = items.map((item) =>
       selectedIds.includes(item.id)
         ? { ...item, status: "selected" as ContentPlanStatus }
         : item.status === "selected"
-        ? { ...item, status: "draft" as ContentPlanStatus }
-        : item
+          ? { ...item, status: "draft" as ContentPlanStatus }
+          : item
     );
 
     setItems(updatedItems);
@@ -95,7 +110,7 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
     // Update status via API - only update items whose status changed
     try {
       const updates: Promise<any>[] = [];
-      
+
       updatedItems.forEach((item) => {
         const previousItem = previousItems.find((p) => p.id === item.id);
         if (previousItem && previousItem.status !== item.status) {
@@ -144,6 +159,19 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
     setActiveItem(null);
   };
 
+  const handleDeleteItem = async (itemId: string) => {
+    if (!generation) return;
+    const result = await deleteItem(generation.id, itemId);
+
+    if (isApiError(result)) {
+      alert(result.error.message);
+      return;
+    }
+
+    setItems((prev) => prev.filter((item) => item.id !== itemId));
+    setActiveItem(null);
+  };
+
   if (!generation) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -177,17 +205,19 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
     approvalFilter === "all"
       ? items
       : items.filter((item) =>
-          approvalFilter === "approved"
-            ? Boolean(item.is_approved)
-            : !item.is_approved
-        );
+        approvalFilter === "approved"
+          ? Boolean(item.is_approved)
+          : !item.is_approved
+      );
 
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-1">
-            {generation.specialization} • {generation.purpose}
+            {generation.id === 'all'
+              ? generation.title
+              : `${generation.specialization} • ${generation.purpose}`}
           </h2>
           <p className="text-sm text-gray-600">
             {getPostsLabel(items.length)}
@@ -198,22 +228,20 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
             <button
               type="button"
               onClick={() => setViewMode("table")}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
-                viewMode === "table"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-1 text-sm font-medium rounded-md ${viewMode === "table"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               {t("posts.view.table")}
             </button>
             <button
               type="button"
               onClick={() => setViewMode("calendar")}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
-                viewMode === "calendar"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-1 text-sm font-medium rounded-md ${viewMode === "calendar"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               {t("posts.view.calendar")}
             </button>
@@ -470,6 +498,7 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
         isOpen={Boolean(activeItem)}
         onClose={() => setActiveItem(null)}
         onSave={handleItemSave}
+        onDelete={handleDeleteItem}
       />
     </div>
   );

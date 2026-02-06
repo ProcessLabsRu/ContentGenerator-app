@@ -107,19 +107,24 @@ export async function createContentPlanItem(
  * Get content plan items for a generation
  */
 export async function getContentPlanItems(
-    generationId: string,
+    generationId?: string,
     page = 1,
     perPage = 100
 ): Promise<{ items: PBContentPlanItem[]; totalItems: number }> {
     const pb = getPocketBase();
 
+    const options: any = {
+        sort: 'publishDate',
+    };
+
+    if (generationId) {
+        options.filter = `generationId = "${generationId}"`;
+    }
+
     const result = await pb.collection(COLLECTIONS.CONTENT_PLAN_ITEMS).getList<PBContentPlanItem>(
         page,
         perPage,
-        {
-            filter: `generationId = "${generationId}"`,
-            sort: 'publishDate',
-        }
+        options
     );
 
     return {

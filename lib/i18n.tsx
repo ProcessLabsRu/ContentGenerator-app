@@ -129,6 +129,7 @@ const translations = {
     "options.contentType.review": "Review",
     "ui.close": "Close",
     "ui.closeModal": "Close modal",
+    "ui.delete": "Delete",
 
     // Auth
     "auth.login.title": "Login",
@@ -141,13 +142,18 @@ const translations = {
     "auth.login.testCredentials": "Test credentials:",
 
     // Medical Content Generator
-    "medical.app.title": "Medical Content Generator",
+    "medical.app.title": "Wellmaker",
     "medical.app.subtitle": "Smart planning for healthcare professionals on Instagram",
     "medical.app.createPlan": "Create New Plan",
     "medical.app.generatedPlans": "Generated Plans",
+    "generations.delete.confirm": "Are you sure you want to delete this generation and all its publications? This action cannot be undone.",
+    "posts.delete.confirm": "Are you sure you want to delete this publication?",
 
     // Medical Modal
     "medical.modal.title": "Create New Content Plan",
+    "nav.user.logout": "Logout",
+    "nav.user.role.admin": "Administrator",
+    "nav.user.role.member": "Member",
     "medical.form.title": "Medical Content Planning for Instagram",
     "medical.form.poweredBy": "Powered by Google Gemini 3 Pro",
 
@@ -161,7 +167,9 @@ const translations = {
     "medical.form.formatsAndQuantity": "Formats and Quantity",
     "medical.form.totalPublications": "Total publications:",
     "medical.form.autoDistribute": "Auto-distribute",
-    "medical.form.healthCalendar": "Sync with 2025 Health Calendar",
+    "medical.form.totalPublicationsLimit": "Total Publications Limit",
+    "medical.form.totalPublicationsLimitDesc": "Maximum number of posts to generate for this plan",
+    "medical.form.healthCalendar": "Use Health Calendar for special dates",
     "medical.form.upcomingDates": "Upcoming Relevant Dates:",
     "medical.form.additionalContext": "Additional Context",
     "medical.form.reset": "Reset",
@@ -359,6 +367,7 @@ const translations = {
     "options.contentType.review": "Analise",
     "ui.close": "Fechar",
     "ui.closeModal": "Fechar modal",
+    "ui.delete": "Excluir",
 
     // Auth
     "auth.login.title": "Entrar no sistema",
@@ -371,13 +380,18 @@ const translations = {
     "auth.login.testCredentials": "Credenciais de teste:",
 
     // Medical Content Generator
-    "medical.app.title": "Gerador de Conteúdo Médico",
+    "medical.app.title": "Wellmaker",
     "medical.app.subtitle": "Planejamento inteligente para profissionais de saúde no Instagram",
     "medical.app.createPlan": "Criar Novo Plano",
     "medical.app.generatedPlans": "Planos Gerados",
+    "generations.delete.confirm": "Tem certeza que deseja excluir esta geração e todas as suas publicações? Esta ação não pode ser desfeita.",
+    "posts.delete.confirm": "Tem certeza que deseja excluir esta publicação?",
 
     // Medical Modal
     "medical.modal.title": "Criar Novo Plano de Conteúdo",
+    "nav.user.logout": "Sair",
+    "nav.user.role.admin": "Administrador",
+    "nav.user.role.member": "Membro",
     "medical.form.title": "Planejamento de Conteúdo Médico para Instagram",
     "medical.form.poweredBy": "Powered by Google Gemini 3 Pro",
 
@@ -390,8 +404,10 @@ const translations = {
     "medical.form.selectedGoals": "Objetivos Selecionados (em ordem de prioridade):",
     "medical.form.formatsAndQuantity": "Formatos e Quantidade",
     "medical.form.totalPublications": "Total de publicações:",
-    "medical.form.autoDistribute": "Auto-distribuir",
-    "medical.form.healthCalendar": "Sincronizar com Calendário de Saúde 2025",
+    "medical.form.autoDistribute": "Distribuir automaticamente",
+    "medical.form.totalPublicationsLimit": "Limite Total de Publicações",
+    "medical.form.totalPublicationsLimitDesc": "Número máximo de postagens a serem geradas para este plano",
+    "medical.form.healthCalendar": "Usar Calendário de Saúde para datas especiais",
     "medical.form.upcomingDates": "Próximas Datas Relevantes:",
     "medical.form.additionalContext": "Contexto Adicional",
     "medical.form.reset": "Reset",

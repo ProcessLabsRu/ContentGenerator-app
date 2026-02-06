@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 interface MedicalGenerationModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: (planData: MedicalContentFormData) => void;
+    onSuccess?: (generation: any) => void;
 }
 
 export const MedicalGenerationModal: React.FC<MedicalGenerationModalProps> = ({
@@ -20,14 +20,24 @@ export const MedicalGenerationModal: React.FC<MedicalGenerationModalProps> = ({
 
     const handleGenerate = async (formData: MedicalContentFormData) => {
         try {
-            // TODO: Aqui será a integração com Gemini 3 Pro
-            console.log("Gerando plano com os seguintes dados:", formData);
+            const response = await fetch("/api/generations/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
 
-            // Simular geração (remover quando integrar com Gemini)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || "Erro ao gerar plano");
+            }
+
+            const result = await response.json();
+            const createdGeneration = result.data;
 
             if (onSuccess) {
-                onSuccess(formData);
+                onSuccess(createdGeneration);
             }
 
             onClose();

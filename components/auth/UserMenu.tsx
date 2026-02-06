@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from './AuthProvider';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/Button';
 import { User, LogOut } from 'lucide-react';
 import {
@@ -14,6 +15,7 @@ import {
 
 export function UserMenu() {
     const { user, logout, isAdmin } = useAuth();
+    const { t } = useI18n();
 
     if (!user) {
         return null;
@@ -22,9 +24,8 @@ export function UserMenu() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden md:inline">{user.email}</span>
+                <Button variant="ghost" size="sm" className="w-10 h-10 rounded-full p-0">
+                    <User className="h-6 w-6" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -32,14 +33,14 @@ export function UserMenu() {
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">{user.email}</p>
                         <p className="text-xs text-muted-foreground">
-                            {isAdmin ? '👑 Администратор' : '👤 Участник'}
+                            {isAdmin ? t("nav.user.role.admin") : t("nav.user.role.member")}
                         </p>
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-red-600">
+                <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Выйти
+                    {t("nav.user.logout")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

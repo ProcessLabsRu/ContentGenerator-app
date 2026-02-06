@@ -14,6 +14,7 @@ interface ContentPlanItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (item: ContentPlanItem) => Promise<void> | void;
+  onDelete: (itemId: string) => Promise<void> | void;
 }
 
 export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
@@ -21,8 +22,10 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onDelete,
 }) => {
   const { t } = useI18n();
+  // ... (rest of the component state stays the same)
   const statusOptions: { value: ContentPlanStatus; label: string }[] = [
     { value: "draft", label: t("status.draft") },
     { value: "selected", label: t("status.selected") },
@@ -39,6 +42,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
     cta: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!item) return;
@@ -46,7 +50,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
       title: item.title || "",
       format: item.format || "",
       status: item.status,
-      publish_date: item.publish_date || "",
+      publish_date: item.publish_date ? item.publish_date.slice(0, 10) : "",
       is_approved: Boolean(item.is_approved),
       pain_point: item.pain_point || "",
       content_outline: item.content_outline || "",
@@ -74,6 +78,16 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!item || !window.confirm(t("posts.delete.confirm"))) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(item.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -81,6 +95,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
       title={t("modal.title")}
     >
       <div className="space-y-4">
+        {/* ... (form fields remain unchanged) */}
         <Input
           label={t("modal.labels.title")}
           value={formState.title}
@@ -158,17 +173,27 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
             setFormState((prev) => ({ ...prev, cta: e.target.value }))
           }
         />
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" onClick={onClose}>
-            {t("modal.cancel")}
-          </Button>
+        <div className="flex justify-between items-center pt-2">
           <Button
-            variant="primary"
-            onClick={handleSave}
-            disabled={isSaving || !formState.title || !formState.format}
+            variant="ghost"
+            onClick={handleDelete}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            disabled={isDeleting || isSaving}
           >
-            {isSaving ? t("modal.saving") : t("modal.save")}
+            {t("ui.delete")}
           </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={onClose}>
+              {t("modal.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={isSaving || isDeleting || !formState.title || !formState.format}
+            >
+              {isSaving ? t("modal.saving") : t("modal.save")}
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

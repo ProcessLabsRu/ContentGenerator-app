@@ -58,7 +58,7 @@ const distributionRules: Record<ContentGoal, FormatDistributionRule> = {
  */
 export function autoDistributeFormats(
     goals: ContentGoal[],
-    totalPublications: number = 30
+    totalPublications: number = 12
 ): FormatCounts {
     if (goals.length === 0) {
         // Если цели не выбраны, возвращаем равномерное распределение

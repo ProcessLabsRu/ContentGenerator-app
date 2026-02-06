@@ -7,6 +7,7 @@ import {
   ContentPlanStatus,
   ContentPlanItemUpdate,
   ApiResult,
+  ApiErrorResponse,
 } from './types';
 
 const API_BASE = '/api';
@@ -104,7 +105,7 @@ export async function deleteGeneration(id: string): Promise<ApiResult<void>> {
   const result = await apiRequest<void>(`/generations/${id}`, {
     method: 'DELETE',
   });
-  
+
   return result;
 }
 
@@ -138,6 +139,44 @@ export async function updateItem(
       item,
     }),
   });
+}
+
+export async function deleteItem(
+  generationId: string,
+  itemId: string
+): Promise<ApiResult<void>> {
+  return apiRequest<void>(`/generations/${generationId}/items/${itemId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchAllContentItems(
+  page = 1,
+  perPage = 100
+): Promise<ApiResult<{ items: ContentPlanItem[]; totalItems: number }>> {
+  try {
+    const response = await fetch(
+      `/api/items?page=${page}&perPage=${perPage}`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ApiErrorResponse;
+    }
+
+    return { data };
+  } catch (error: any) {
+    return {
+      error: {
+        message: error.message || "Network error",
+        code: "NETWORK_ERROR",
+      },
+    };
+  }
 }
 
 // Helper function to check if result is an error

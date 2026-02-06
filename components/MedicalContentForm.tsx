@@ -65,6 +65,7 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
         },
         additionalContext: "",
         useHealthCalendar: false,
+        totalPublications: 12,
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof MedicalContentFormData, string>>>({});
@@ -154,7 +155,7 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
             return;
         }
 
-        const distributed = autoDistributeFormats(formData.goals);
+        const distributed = autoDistributeFormats(formData.goals, formData.totalPublications);
         setFormData((prev) => ({ ...prev, formatCounts: distributed }));
     };
 
@@ -185,6 +186,7 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
             },
             additionalContext: "",
             useHealthCalendar: false,
+            totalPublications: 12,
         });
         setErrors({});
         setShowUpcomingDates(false);
@@ -435,6 +437,27 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
                     >
                         🤖 {t("medical.form.autoDistribute")}
                     </Button>
+                </div>
+
+                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 font-bold mb-1">
+                            {t("medical.form.totalPublicationsLimit")}
+                        </label>
+                        <p className="text-xs text-gray-500">
+                            {t("medical.form.totalPublicationsLimitDesc")}
+                        </p>
+                    </div>
+                    <input
+                        type="number"
+                        min={1}
+                        max={90}
+                        value={formData.totalPublications}
+                        onChange={(e) =>
+                            setFormData({ ...formData, totalPublications: parseInt(e.target.value) || 0 })
+                        }
+                        className="w-20 border border-gray-300 rounded px-3 py-2 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
