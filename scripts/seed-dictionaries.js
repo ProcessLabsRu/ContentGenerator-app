@@ -5,6 +5,25 @@
  * Использование: node scripts/seed-dictionaries.js
  */
 
+const fs = require('fs');
+const path = require('path');
+
+// Загрузка переменных окружения из .env.local
+const envPath = path.join(__dirname, '..', '.env.local');
+if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+        const match = line.match(/^([^#=]+)=(.*)$/);
+        if (match) {
+            const key = match[1].trim();
+            const value = match[2].trim();
+            if (!process.env[key]) {
+                process.env[key] = value;
+            }
+        }
+    });
+}
+
 const POCKETBASE_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
 const ADMIN_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL || 'admin@example.com';
 const ADMIN_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD || 'admin123456';

@@ -21,32 +21,29 @@ npm install
 
 ## Шаг 2: Настройка переменных окружения
 
-### Для приложения (.env.local)
+Создайте файл `.env.local` из примера:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-Отредактируйте `.env.local`:
+Отредактируйте `.env.local` и укажите ваши данные:
 
 ```env
+# Database Provider
+DATABASE_PROVIDER=pocketbase
+
+# PocketBase Configuration (для приложения)
 NEXT_PUBLIC_POCKETBASE_URL=https://pocketbase.processlabs.ru
-NEXT_PUBLIC_GEMINI_API_KEY=ваш_ключ_gemini
-```
 
-### Для скриптов PocketBase (.env.pocketbase)
-
-```bash
-cp .env.pocketbase.example .env.pocketbase
-```
-
-Отредактируйте `.env.pocketbase`:
-
-```env
+# PocketBase Admin Credentials (для скриптов)
+# ВАЖНО: НЕ КОММИТЬТЕ ЭТОТ ФАЙЛ С РЕАЛЬНЫМИ ПАРОЛЯМИ!
 POCKETBASE_ADMIN_EMAIL=ваш_email@example.com
 POCKETBASE_ADMIN_PASSWORD=ваш_пароль
 POCKETBASE_URL=https://pocketbase.processlabs.ru
 ```
+
+> **Примечание:** Переменные с `NEXT_PUBLIC_` доступны в браузере. Admin credentials используются только Node.js скриптами и безопасны.
 
 ## Шаг 3: Настройка PocketBase
 
@@ -54,11 +51,13 @@ POCKETBASE_URL=https://pocketbase.processlabs.ru
 
 ```bash
 # Создать коллекции
-export $(cat .env.pocketbase | xargs) && node scripts/setup-pocketbase-collections.js
+node scripts/setup-pocketbase-collections.js
 
 # Заполнить справочники данными
-export $(cat .env.pocketbase | xargs) && node scripts/seed-dictionaries.js
+node scripts/seed-dictionaries.js
 ```
+
+> **Примечание:** Скрипты автоматически используют переменные из `.env.local`
 
 ### Вариант Б: Импорт через Admin UI
 
