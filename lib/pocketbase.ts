@@ -9,7 +9,7 @@ let pb: PocketBase | null = null;
  */
 export function getPocketBase(): PocketBase {
     if (!pb) {
-        const url = process.env.POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL;
+        let url = process.env.POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL;
 
         if (!url) {
             throw new Error(
@@ -17,6 +17,12 @@ export function getPocketBase(): PocketBase {
                 'Please add it to your .env.local file.'
             );
         }
+
+        // Удаляем /_/ из URL если он там есть (это только для Admin UI)
+        url = url.replace(/\/_\/?$/, '');
+
+        // Убираем trailing slash
+        url = url.replace(/\/$/, '');
 
         pb = new PocketBase(url);
 
@@ -32,7 +38,12 @@ export function getPocketBase(): PocketBase {
  * This should be called in client components
  */
 export function initPocketBase(): PocketBase {
-    const url = process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://localhost:8090';
+    let url = process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://localhost:8090';
+
+    // Удаляем /_/ из URL если он там есть
+    url = url.replace(/\/_\/?$/, '');
+    url = url.replace(/\/$/, '');
+
     const client = new PocketBase(url);
     client.autoCancellation(false);
     return client;

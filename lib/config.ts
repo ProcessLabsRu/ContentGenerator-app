@@ -1,5 +1,5 @@
 export interface DatabaseConfig {
-  provider: 'direct' | 'nocodb';
+  provider: 'direct' | 'nocodb' | 'pocketbase';
   direct?: {
     connectionString?: string;
     host?: string;
@@ -13,6 +13,9 @@ export interface DatabaseConfig {
     apiUrl: string;
     apiToken: string;
     baseId: string;
+  };
+  pocketbase?: {
+    url: string;
   };
 }
 
@@ -48,7 +51,16 @@ function getEnvVarAsBoolean(name: string, defaultValue?: boolean): boolean {
 }
 
 export function getDatabaseConfig(): DatabaseConfig {
-  const provider = (getEnvVar('DATABASE_PROVIDER', 'direct') || 'direct') as 'direct' | 'nocodb';
+  const provider = (getEnvVar('DATABASE_PROVIDER', 'direct') || 'direct') as 'direct' | 'nocodb' | 'pocketbase';
+
+  if (provider === 'pocketbase') {
+    return {
+      provider: 'pocketbase',
+      pocketbase: {
+        url: getEnvVar('POCKETBASE_URL') || getEnvVar('NEXT_PUBLIC_POCKETBASE_URL'),
+      },
+    };
+  }
 
   if (provider === 'nocodb') {
     return {
@@ -63,7 +75,7 @@ export function getDatabaseConfig(): DatabaseConfig {
 
   // Direct PostgreSQL connection
   const connectionString = process.env.DATABASE_URL;
-  
+
   if (connectionString && connectionString.trim() !== '') {
     return {
       provider: 'direct',
@@ -76,9 +88,9 @@ export function getDatabaseConfig(): DatabaseConfig {
 
   // Fallback to individual parameters - only if DATABASE_URL is not set
   // Check if at least some individual parameters are set
-  const hasIndividualParams = 
-    process.env.POSTGRES_HOST || 
-    process.env.POSTGRES_USER || 
+  const hasIndividualParams =
+    process.env.POSTGRES_HOST ||
+    process.env.POSTGRES_USER ||
     process.env.POSTGRES_PASSWORD;
 
   if (hasIndividualParams) {
@@ -107,7 +119,14 @@ export function getDatabaseConfig(): DatabaseConfig {
 
 // Validate configuration
 export function validateConfig(config: DatabaseConfig): void {
-  if (config.provider === 'nocodb') {
+  if (config.provider === 'pocketbase') {
+    if (!config.pocketbase) {
+      throw new Error('PocketBase configuration is missing');
+    }
+    if (!config.pocketbase.url) {
+      throw new Error('PocketBase URL is required');
+    }
+  } else if (config.provider === 'nocodb') {
     if (!config.nocodb) {
       throw new Error('NocoDB configuration is missing');
     }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Locale, useI18n } from "@/lib/i18n";
 import { ConnectionIndicator } from "./ConnectionIndicator";
+import { UserMenu } from "./auth/UserMenu";
 
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
@@ -43,6 +44,7 @@ export const Navigation: React.FC = () => {
                   <option value="pt-BR">{t("nav.language.ptBr")}</option>
                 </select>
               </div>
+              <UserMenu />
             </div>
           </div>
         </div>

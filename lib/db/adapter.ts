@@ -15,6 +15,9 @@ import * as directAccess from './direct-access';
 // Import NocoDB client functions
 import * as nocodbAccess from './nocodb-client';
 
+// Import PocketBase client functions
+import * as pocketbaseAccess from './pocketbase-access';
+
 export interface DatabaseAdapter {
   createGeneration(data: GenerationInput, items: ContentPlanItemInput[]): Promise<GenerationWithItems>;
   getGenerationById(id: string): Promise<Generation | null>;
@@ -118,15 +121,63 @@ class NocoDBAdapter implements DatabaseAdapter {
   }
 }
 
+class PocketBaseAdapter implements DatabaseAdapter {
+  async createGeneration(
+    data: GenerationInput,
+    items: ContentPlanItemInput[]
+  ): Promise<GenerationWithItems> {
+    return pocketbaseAccess.createGeneration(data, items);
+  }
+
+  async getGenerationById(id: string): Promise<Generation | null> {
+    return pocketbaseAccess.getGenerationById(id);
+  }
+
+  async getAllGenerations(): Promise<Generation[]> {
+    return pocketbaseAccess.getAllGenerations();
+  }
+
+  async updateGeneration(
+    id: string,
+    data: Partial<GenerationInput>
+  ): Promise<Generation> {
+    return pocketbaseAccess.updateGeneration(id, data);
+  }
+
+  async deleteGeneration(id: string): Promise<void> {
+    return pocketbaseAccess.deleteGeneration(id);
+  }
+
+  async getItemsByGenerationId(generationId: string): Promise<ContentPlanItem[]> {
+    return pocketbaseAccess.getItemsByGenerationId(generationId);
+  }
+
+  async updateItemStatus(
+    itemId: string,
+    status: ContentPlanStatus
+  ): Promise<ContentPlanItem> {
+    return pocketbaseAccess.updateItemStatus(itemId, status);
+  }
+
+  async updateItem(
+    itemId: string,
+    data: ContentPlanItemUpdate
+  ): Promise<ContentPlanItem> {
+    return pocketbaseAccess.updateItem(itemId, data);
+  }
+}
+
 // Singleton adapter instance
 let adapter: DatabaseAdapter | null = null;
 
 export function getDatabaseAdapter(): DatabaseAdapter {
   if (!adapter) {
     const config = getValidatedConfig();
-    
+
     if (config.provider === 'nocodb') {
       adapter = new NocoDBAdapter();
+    } else if (config.provider === 'pocketbase') {
+      adapter = new PocketBaseAdapter();
     } else {
       adapter = new DirectAccessAdapter();
     }

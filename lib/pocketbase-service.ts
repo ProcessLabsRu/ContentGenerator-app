@@ -172,7 +172,9 @@ export async function batchCreateContentPlanItems(
 export async function checkPocketBaseConnection(): Promise<boolean> {
     try {
         const pb = getPocketBase();
-        await pb.health.check();
+        // Используем простой запрос к API вместо admin health check
+        // Пробуем получить список коллекций (публичный endpoint)
+        await pb.collection('medical_specializations').getList(1, 1);
         return true;
     } catch (error) {
         console.error('PocketBase connection error:', error);
