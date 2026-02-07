@@ -48,7 +48,6 @@ function pbItemToItem(pbItem: PBContentPlanItem): ContentPlanItem {
         cta: pbItem.cta || '',
         status: pbItem.status as ContentPlanStatus,
         publish_date: pbItem.publishDate || null,
-        is_approved: pbItem.approved || false,
         created_at: pbItem.created,
         updated_at: pbItem.updated,
     };
@@ -84,7 +83,6 @@ export async function createGeneration(
             contentOutline: item.content_outline,
             cta: item.cta,
             publishDate: item.publish_date || undefined,
-            approved: !!item.is_approved,
         }))
     );
 
@@ -156,7 +154,6 @@ export async function updateItem(
         contentOutline: data.content_outline,
         cta: data.cta,
         publishDate: data.publish_date || undefined,
-        approved: data.is_approved,
     });
     return pbItemToItem(pbItem);
 }

@@ -4,19 +4,15 @@ import {
   SpecializationOption,
   PurposeOption,
   ContentTypeOption,
+  InstagramFormat,
 } from "./types";
 
-const formats = [
-  "Blog Post",
-  "Video",
-  "Infographic",
-  "Case Study",
-  "Social Media Post",
-  "Podcast",
-  "Webinar",
-  "Email Newsletter",
-  "Whitepaper",
-  "E-book",
+const formats: InstagramFormat[] = [
+  "Reels",
+  "Carrossel",
+  "Post Estático",
+  "Stories",
+  "Live/Collab",
 ];
 
 const statuses: ContentPlanItem["status"][] = ["draft"];
@@ -116,7 +112,7 @@ const generatePainPoint = (
 
   return (
     specializationPainPoints[
-      Math.floor(Math.random() * specializationPainPoints.length)
+    Math.floor(Math.random() * specializationPainPoints.length)
     ] || `Key challenges in ${specialization} for ${purpose}`
   );
 };
@@ -216,7 +212,6 @@ export function generateMockContentPlan(
       cta: generateCTA(formData.purpose, formData.contentType),
       status,
       publish_date: publishDateValue,
-      is_approved: false,
     });
   }
 

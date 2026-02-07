@@ -47,7 +47,6 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({
         cta: item.cta,
         status: item.status,
         publish_date: item.publish_date || null,
-        is_approved: item.is_approved ?? false,
       }));
 
       const result = await createGeneration(generationInput, itemsInput);

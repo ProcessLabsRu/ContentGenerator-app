@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDatabaseConfig } from '@/lib/config';
-import { testConnection } from '@/lib/db/client';
+import { checkPocketBaseConnection } from '@/lib/pocketbase-service';
 
 export async function GET() {
   try {
@@ -9,36 +9,29 @@ export async function GET() {
     let databaseStatus: 'connected' | 'disconnected' | 'not_configured' = 'not_configured';
 
     // Check if configuration is actually set
-    const hasConfig = config.provider === 'direct' 
-      ? (config.direct?.connectionString || config.direct?.host)
-      : (config.nocodb?.apiUrl && config.nocodb?.apiToken);
+    // For PocketBase, we just need the URL
+    const hasConfig = !!config.pocketbase?.url;
 
     if (!hasConfig) {
       return NextResponse.json({
         status: 'error',
         database: 'not_configured',
         provider: config.provider,
-        message: 'Database configuration not found. Please set DATABASE_URL or individual parameters.',
+        message: 'Database configuration not found. Please set POCKETBASE_URL.',
         timestamp: new Date().toISOString(),
       }, {
         status: 503,
       });
     }
 
-    if (config.provider === 'direct') {
-      try {
-        // Test direct PostgreSQL connection
-        const isConnected = await testConnection();
-        databaseStatus = isConnected ? 'connected' : 'disconnected';
-      } catch (error: any) {
-        // Connection test failed - database is disconnected
-        databaseStatus = 'disconnected';
-        console.error('Database connection test failed:', error.message);
-      }
-    } else {
-      // For NocoDB, we can't easily test without making an API call
-      // For now, just check if configuration exists
-      databaseStatus = config.nocodb ? 'connected' : 'not_configured';
+    try {
+      // Test PocketBase connection
+      const isConnected = await checkPocketBaseConnection();
+      databaseStatus = isConnected ? 'connected' : 'disconnected';
+    } catch (error: any) {
+      // Connection test failed - database is disconnected
+      databaseStatus = 'disconnected';
+      console.error('Database connection test failed:', error.message);
     }
 
     const status = databaseStatus === 'connected' ? 'ok' : 'error';

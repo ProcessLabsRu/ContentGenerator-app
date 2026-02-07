@@ -70,7 +70,6 @@ export async function POST(request: NextRequest) {
       cta: item.cta || '',
       status: item.status || 'draft',
       publish_date: item.publish_date || item.publishDate || null,
-      is_approved: item.is_approved ?? item.isApproved ?? false,
     }));
 
     const created = await createGeneration(generationInput, itemsInput);

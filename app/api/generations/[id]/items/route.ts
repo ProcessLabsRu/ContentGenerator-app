@@ -51,14 +51,7 @@ export async function PUT(
         body.item,
         'publish_date'
       );
-      const hasApproval = Object.prototype.hasOwnProperty.call(
-        body.item,
-        'is_approved'
-      );
-      const hasApprovalAlt = Object.prototype.hasOwnProperty.call(
-        body.item,
-        'isApproved'
-      );
+
       const itemUpdate: ContentPlanItemUpdate = {
         id: body.item.id,
         format: body.item.format,
@@ -69,11 +62,6 @@ export async function PUT(
         cta: body.item.cta,
         status: body.item.status,
         publish_date: hasPublishDate ? body.item.publish_date ?? null : undefined,
-        is_approved: hasApproval
-          ? Boolean(body.item.is_approved)
-          : hasApprovalAlt
-          ? Boolean(body.item.isApproved)
-          : undefined,
       };
 
       const updated = await updateItem(itemUpdate.id, itemUpdate);
@@ -86,7 +74,7 @@ export async function PUT(
     // Update single item status if itemId is provided
     if (body.itemId && body.status) {
       const status = body.status as ContentPlanStatus;
-      
+
       if (!['draft', 'selected', 'generated'].includes(status)) {
         return NextResponse.json<ApiErrorResponse>(
           {
@@ -100,7 +88,7 @@ export async function PUT(
       }
 
       const updated = await updateItemStatus(body.itemId, status);
-      
+
       return NextResponse.json<ApiResponse<ContentPlanItem>>({
         data: updated,
       });
@@ -108,12 +96,12 @@ export async function PUT(
 
     // Batch update multiple items
     if (body.items && Array.isArray(body.items)) {
-      const updates = body.items.map((item: { id: string; status: string }) => 
+      const updates = body.items.map((item: { id: string; status: string }) =>
         updateItemStatus(item.id, item.status as ContentPlanStatus)
       );
-      
+
       const updated = await Promise.all(updates);
-      
+
       return NextResponse.json<ApiResponse<ContentPlanItem[]>>({
         data: updated,
       });
@@ -130,7 +118,7 @@ export async function PUT(
     );
   } catch (error: any) {
     console.error('Error updating item status:', error);
-    
+
     if (error.message?.includes('not found')) {
       return NextResponse.json<ApiErrorResponse>(
         {
