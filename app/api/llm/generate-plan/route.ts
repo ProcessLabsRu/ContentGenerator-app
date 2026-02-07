@@ -3,6 +3,8 @@ import { createLLMClient } from '@/lib/llm';
 import { MedicalContentFormData } from '@/lib/types';
 import { SYSTEM_PROMPT, generateUserPrompt } from '@/lib/llm/prompts';
 import { normalizeLLMResponse } from '@/lib/llm/normalization';
+import { getMonths, getAllSpecializations, getHealthCalendarEvents } from '@/lib/db/adapter';
+import { HealthCalendarEvent } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,9 +20,25 @@ export async function POST(request: NextRequest) {
 
         const client = createLLMClient();
 
+        // Fetch health events if needed
+        let events: HealthCalendarEvent[] = [];
+        if (formData.useHealthCalendar) {
+            try {
+                const [dbMonths, dbSpecializations] = await Promise.all([getMonths(), getAllSpecializations()]);
+                const monthRecord = dbMonths.find(m => m.name === formData.month);
+                const specRecord = dbSpecializations.find(s => s.name === formData.specialization);
+
+                if (monthRecord) {
+                    events = await getHealthCalendarEvents(monthRecord.id, specRecord?.id);
+                }
+            } catch (error) {
+                console.error('Error fetching events for LLM:', error);
+            }
+        }
+
         const response = await client.generate([
             { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: generateUserPrompt(formData) }
+            { role: 'user', content: generateUserPrompt(formData, events) }
         ]);
 
         let items = [];

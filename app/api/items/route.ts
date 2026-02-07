@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getContentPlanItems } from '@/lib/pocketbase-service';
+import { getAllContentItems } from '@/lib/db/adapter';
 import { ApiErrorResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const perPage = parseInt(searchParams.get('perPage') || '100');
 
-        // Вызываем сервис без generationId, чтобы получить все элементы
-        const result = await getContentPlanItems(undefined, page, perPage);
+        // Используем адаптер, чтобы получить преобразованные данные (с маппингом полей)
+        const result = await getAllContentItems(page, perPage);
 
         return NextResponse.json(result);
     } catch (error: any) {

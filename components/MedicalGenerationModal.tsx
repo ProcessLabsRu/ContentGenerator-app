@@ -8,17 +8,25 @@ import { useI18n } from "@/lib/i18n";
 interface MedicalGenerationModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onStartGeneration?: () => void;
     onSuccess?: (generation: any) => void;
+    onError?: () => void;
 }
 
 export const MedicalGenerationModal: React.FC<MedicalGenerationModalProps> = ({
     isOpen,
     onClose,
+    onStartGeneration,
     onSuccess,
+    onError,
 }) => {
     const { t } = useI18n();
 
     const handleGenerate = async (formData: MedicalContentFormData) => {
+        // Start process and close immediately
+        if (onStartGeneration) onStartGeneration();
+        onClose();
+
         try {
             const response = await fetch("/api/generations/generate", {
                 method: "POST",
@@ -40,11 +48,13 @@ export const MedicalGenerationModal: React.FC<MedicalGenerationModalProps> = ({
                 onSuccess(createdGeneration);
             }
 
-            onClose();
-
         } catch (error: any) {
             console.error("Erro ao gerar plano:", error);
             alert(`Erro ao gerar plano: ${error.message || "Tente novamente"}`);
+
+            if (onError) {
+                onError();
+            }
         }
     };
 

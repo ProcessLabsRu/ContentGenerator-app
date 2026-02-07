@@ -986,8 +986,8 @@
         "type": "select",
         "values": [
           "draft",
-          "selected",
-          "generated"
+          "generated",
+          "approved"
         ]
       },
       {
@@ -1457,7 +1457,7 @@
         "min": "",
         "name": "date",
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "date"
       },
@@ -1497,6 +1497,29 @@
         "required": false,
         "system": false,
         "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "select2363381545",
+        "maxSelect": 1,
+        "name": "type",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "select",
+        "values": [
+          "day",
+          "month"
+        ]
+      },
+      {
+        "hidden": false,
+        "id": "bool1442100010",
+        "name": "isRecurring",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
       },
       {
         "hidden": false,

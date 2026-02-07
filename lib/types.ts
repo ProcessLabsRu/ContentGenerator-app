@@ -120,11 +120,12 @@ export interface HealthCalendarEvent {
   eventName: string;
   description: string;
   date?: string;
-  year?: number;
   color?: string;
   isActive?: boolean;
   source?: 'manual' | 'official';
   notes?: string;
+  type?: 'day' | 'month';
+  isRecurring?: boolean;
   created_at?: string;
   updated_at?: string;
 }

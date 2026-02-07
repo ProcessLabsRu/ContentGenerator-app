@@ -1,5 +1,4 @@
-import { MedicalContentFormData, MonthOption, MedicalSpecialization } from "@/lib/types";
-import { getHealthEvents } from "@/lib/healthCalendar";
+import { MedicalContentFormData, HealthCalendarEvent } from "@/lib/types";
 
 export const SYSTEM_PROMPT = `
 You are an expert Social Media Manager specializing in medical content marketing. 
@@ -18,7 +17,7 @@ Each object should have the following fields:
 Do not include any markdown formatting or explanations outside the JSON array. return ONLY the JSON.
 `;
 
-export function generateUserPrompt(data: MedicalContentFormData): string {
+export function generateUserPrompt(data: MedicalContentFormData, events: HealthCalendarEvent[] = []): string {
     const goalsList = data.goals.join(", ");
     const formatDistribution = Object.entries(data.formatCounts)
         .filter(([_, count]) => count > 0)
@@ -34,29 +33,17 @@ export function generateUserPrompt(data: MedicalContentFormData): string {
 
     let healthEventsContext = "";
     if (data.useHealthCalendar) {
-        let eventsFound = false;
+        if (events.length > 0) {
+            const eventsList = events
+                .map(e => `- ${e.eventName}: ${e.description}${e.date ? ` (Data: ${e.date})` : ""}`)
+                .join("\n");
 
-        if (data.month && data.specialization) {
-            const events = getHealthEvents(
-                data.month as MonthOption,
-                data.specialization as MedicalSpecialization
-            );
-
-            if (events.length > 0) {
-                eventsFound = true;
-                const eventsList = events
-                    .map(e => `- ${e.eventName}: ${e.description}`)
-                    .join("\n");
-
-                healthEventsContext = `
+            healthEventsContext = `
 Relevant Health Awareness Events for ${data.month}:
 ${eventsList}
 Please incorporate these themes into the content plan where appropriate and schedule posts near these dates.
 `;
-            }
-        }
-
-        if (!eventsFound) {
+        } else {
             healthEventsContext = `Please align content with relevant health awareness dates for ${data.month} in Brazil where applicable.`;
         }
     }

@@ -147,7 +147,7 @@ export const GenerationsList: React.FC<GenerationsListProps> = ({
       <div
         onClick={() => onSelect({ id: 'all', title: t("generations.all") } as Generation)}
         className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 relative group shadow-sm mb-4 ${selectedId === 'all'
-          ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500/10"
+          ? "border-brand-red bg-brand-red/5 ring-1 ring-brand-red/10"
           : "border-gray-200 bg-slate-50/50 hover:border-gray-300 hover:bg-slate-100/80"
           }`}
       >
@@ -161,8 +161,8 @@ export const GenerationsList: React.FC<GenerationsListProps> = ({
           key={generation.id}
           onClick={() => onSelect(generation)}
           className={`p-4 border rounded-lg cursor-pointer transition-colors relative group ${selectedId === generation.id
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+            ? "border-brand-blue bg-brand-blue/5 shadow-sm"
+            : "border-gray-200 hover:border-brand-blue/30 hover:bg-gray-50"
             }`}
         >
           <div className="absolute top-2 right-2 flex items-center gap-0.5">
@@ -172,7 +172,7 @@ export const GenerationsList: React.FC<GenerationsListProps> = ({
                 e.stopPropagation();
                 setDetailsModalItem(generation);
               }}
-              className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 text-gray-400 hover:text-brand-blue transition-colors opacity-0 group-hover:opacity-100"
               title={t("generations.details")}
             >
               <Info className="h-4 w-4" />

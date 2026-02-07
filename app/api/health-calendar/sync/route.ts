@@ -66,12 +66,14 @@ export async function POST() {
 
             const eventData = {
                 monthId,
+                monthNumber: mIdx + 1,
                 eventName: event.eventName,
                 description: event.description || "-",
-                date: pbDate,
-                year: currentYear,
+                date: event.type === 'day' ? pbDate : "",
                 isActive: true,
-                source: 'official' as const
+                source: 'official' as const,
+                type: event.type,
+                isRecurring: true
             };
 
             await createHealthCalendarEvent(eventData);

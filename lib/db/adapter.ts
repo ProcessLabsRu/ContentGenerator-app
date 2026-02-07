@@ -22,12 +22,14 @@ export interface DatabaseAdapter {
   updateItemStatus(itemId: string, status: ContentPlanStatus): Promise<ContentPlanItem>;
   updateItem(itemId: string, data: ContentPlanItemUpdate): Promise<ContentPlanItem>;
   deleteItem(itemId: string): Promise<void>;
+  getAllContentItems(page?: number, perPage?: number): Promise<{ items: ContentPlanItem[], totalItems: number }>;
   // Health Calendar
-  getHealthCalendarEvents(): Promise<import('../types').HealthCalendarEvent[]>;
+  getHealthCalendarEvents(monthId?: string, specializationId?: string): Promise<import('../types').HealthCalendarEvent[]>;
   createHealthCalendarEvent(data: Partial<import('../pocketbase-types').PBHealthCalendarEvent>): Promise<import('../types').HealthCalendarEvent>;
   updateHealthCalendarEvent(id: string, data: Partial<import('../pocketbase-types').PBHealthCalendarEvent>): Promise<import('../types').HealthCalendarEvent>;
   deleteHealthCalendarEvent(id: string): Promise<void>;
   getMonths(): Promise<import('../pocketbase-types').PBMonth[]>;
+  getAllSpecializations(): Promise<import('../pocketbase-types').PBMedicalSpecialization[]>;
 }
 
 class PocketBaseAdapter implements DatabaseAdapter {
@@ -79,8 +81,12 @@ class PocketBaseAdapter implements DatabaseAdapter {
     return pocketbaseAccess.deleteItem(itemId);
   }
 
-  async getHealthCalendarEvents(): Promise<import('../types').HealthCalendarEvent[]> {
-    return pocketbaseAccess.getHealthCalendarEvents();
+  async getAllContentItems(page = 1, perPage = 100): Promise<{ items: ContentPlanItem[], totalItems: number }> {
+    return pocketbaseAccess.getAllContentPlanItems(page, perPage);
+  }
+
+  async getHealthCalendarEvents(monthId?: string, specializationId?: string): Promise<import('../types').HealthCalendarEvent[]> {
+    return pocketbaseAccess.getHealthCalendarEvents(monthId, specializationId);
   }
 
   async createHealthCalendarEvent(data: Partial<import('../pocketbase-types').PBHealthCalendarEvent>): Promise<import('../types').HealthCalendarEvent> {
@@ -97,6 +103,10 @@ class PocketBaseAdapter implements DatabaseAdapter {
 
   async getMonths(): Promise<import('../pocketbase-types').PBMonth[]> {
     return pocketbaseAccess.getAllMonths();
+  }
+
+  async getAllSpecializations(): Promise<import('../pocketbase-types').PBMedicalSpecialization[]> {
+    return pocketbaseAccess.getAllSpecializations();
   }
 }
 
@@ -164,9 +174,13 @@ export async function deleteItem(itemId: string): Promise<void> {
   return getDatabaseAdapter().deleteItem(itemId);
 }
 
+export async function getAllContentItems(page = 1, perPage = 100): Promise<{ items: ContentPlanItem[], totalItems: number }> {
+  return getDatabaseAdapter().getAllContentItems(page, perPage);
+}
+
 // Health Calendar convenience functions
-export async function getHealthCalendarEvents(): Promise<import('../types').HealthCalendarEvent[]> {
-  return getDatabaseAdapter().getHealthCalendarEvents();
+export async function getHealthCalendarEvents(monthId?: string, specializationId?: string): Promise<import('../types').HealthCalendarEvent[]> {
+  return getDatabaseAdapter().getHealthCalendarEvents(monthId, specializationId);
 }
 
 export async function createHealthCalendarEvent(data: Partial<import('../pocketbase-types').PBHealthCalendarEvent>): Promise<import('../types').HealthCalendarEvent> {
@@ -183,6 +197,10 @@ export async function deleteHealthCalendarEvent(id: string): Promise<void> {
 
 export async function getMonths(): Promise<import('../pocketbase-types').PBMonth[]> {
   return getDatabaseAdapter().getMonths();
+}
+
+export async function getAllSpecializations(): Promise<import('../pocketbase-types').PBMedicalSpecialization[]> {
+  return getDatabaseAdapter().getAllSpecializations();
 }
 
 // Alias for compatibility with some routes

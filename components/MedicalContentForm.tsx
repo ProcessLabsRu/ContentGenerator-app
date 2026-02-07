@@ -5,14 +5,18 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Select } from "./ui/Select";
 import { Textarea } from "./ui/Textarea";
+import { Switch } from "./ui/Switch";
+import { Modal } from "./ui/Modal";
 import {
     MedicalContentFormData,
     MedicalSpecialization,
     MonthOption,
     ContentGoal,
     FormatCounts,
+    HealthCalendarEvent,
 } from "@/lib/types";
-import { getHealthEvents, getUpcomingHealthEvents } from "@/lib/healthCalendar";
+import { getHealthCalendarEvents, getMonths, getAllSpecializations } from "@/lib/db/adapter";
+import { PBMonth, PBMedicalSpecialization } from "@/lib/pocketbase-types";
 import {
     autoDistributeFormats,
     getTotalPublications,
@@ -71,6 +75,75 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
     const [errors, setErrors] = useState<Partial<Record<keyof MedicalContentFormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showUpcomingDates, setShowUpcomingDates] = useState(false);
+    const [clickedEvent, setClickedEvent] = useState<HealthCalendarEvent | null>(null);
+    const [currentMonthEvents, setCurrentMonthEvents] = useState<HealthCalendarEvent[]>([]);
+    const [upcomingEvents, setUpcomingEvents] = useState<HealthCalendarEvent[]>([]);
+    const [dbMonths, setDbMonths] = useState<PBMonth[]>([]);
+    const [dbSpecializations, setDbSpecializations] = useState<PBMedicalSpecialization[]>([]);
+
+    // Load metadata
+    useEffect(() => {
+        const loadMetadata = async () => {
+            try {
+                const [ms, sps] = await Promise.all([getMonths(), getAllSpecializations()]);
+                setDbMonths(ms);
+                setDbSpecializations(sps);
+            } catch (error) {
+                console.error("Error loading metadata:", error);
+            }
+        };
+        loadMetadata();
+    }, []);
+
+    // Load events
+    useEffect(() => {
+        const loadEvents = async () => {
+            if (!formData.useHealthCalendar || dbMonths.length === 0) {
+                setCurrentMonthEvents([]);
+                setUpcomingEvents([]);
+                return;
+            }
+
+            try {
+                // Normalize search to handle potential encoding/whitespace issues
+                const normalize = (s: string) => s.trim().toLowerCase().normalize('NFC');
+
+                const searchMonth = normalize(formData.month);
+                const searchSpec = normalize(formData.specialization);
+
+                const selectedMonthRecord = dbMonths.find(m =>
+                    normalize(m.name) === searchMonth ||
+                    (m.nameEn && normalize(m.nameEn) === searchMonth)
+                );
+
+                const selectedSpecRecord = dbSpecializations.find(s =>
+                    normalize(s.name) === searchSpec ||
+                    (s.nameEn && normalize(s.nameEn) === searchSpec)
+                );
+
+                if (selectedMonthRecord) {
+                    // 1. Load current month events
+                    const currentEvs = await getHealthCalendarEvents(selectedMonthRecord.id, selectedSpecRecord?.id);
+                    setCurrentMonthEvents(currentEvs);
+
+                    // 2. Load upcoming events (next 2 months)
+                    const monthIdx = dbMonths.findIndex(m => m.id === selectedMonthRecord.id);
+                    const nextMonth1 = dbMonths[(monthIdx + 1) % 12];
+                    const nextMonth2 = dbMonths[(monthIdx + 2) % 12];
+
+                    const [evs1, evs2] = await Promise.all([
+                        getHealthCalendarEvents(nextMonth1.id, selectedSpecRecord?.id),
+                        getHealthCalendarEvents(nextMonth2.id, selectedSpecRecord?.id)
+                    ]);
+
+                    setUpcomingEvents([...evs1, ...evs2].slice(0, 4));
+                }
+            } catch (error) {
+                console.error("Error loading health events:", error);
+            }
+        };
+        loadEvents();
+    }, [formData.useHealthCalendar, formData.month, formData.specialization, dbMonths, dbSpecializations]);
 
     // Specialization options
     const specializationOptions: { value: MedicalSpecialization; label: string }[] = [
@@ -97,10 +170,9 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
 
     // Dynamic placeholder for context
     const getContextPlaceholder = (): string => {
-        if (!formData.specialization) {
-            return t("medical.context.default");
-        }
+        if (!formData.specialization) return t("medical.context.default");
 
+        const spec = formData.specialization as MedicalSpecialization;
         const placeholderMap: Record<MedicalSpecialization, string> = {
             "Odontologia": t("medical.context.dentistry"),
             "Mamografia/Mastologia": t("medical.context.mammography"),
@@ -114,15 +186,15 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
             "Nutrologia/Nutrição": t("medical.context.nutrology"),
         };
 
-        return placeholderMap[formData.specialization];
+        return placeholderMap[spec] || t("medical.context.default");
     };
 
     // Goal toggle handler
     const handleGoalToggle = (goal: ContentGoal) => {
-        setFormData((prev) => {
+        setFormData((prev: MedicalContentFormData) => {
             const isSelected = prev.goals.includes(goal);
             const newGoals = isSelected
-                ? prev.goals.filter((g) => g !== goal)
+                ? prev.goals.filter((g: ContentGoal) => g !== goal)
                 : [...prev.goals, goal];
             return { ...prev, goals: newGoals };
         });
@@ -161,7 +233,7 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
 
     // Update format count
     const handleFormatCountChange = (format: keyof FormatCounts, value: number) => {
-        setFormData((prev) => ({
+        setFormData((prev: MedicalContentFormData) => ({
             ...prev,
             formatCounts: {
                 ...prev.formatCounts,
@@ -253,15 +325,6 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
             setShowUpcomingDates(false);
         }
     }, [formData.useHealthCalendar, formData.month]);
-
-    // Get health calendar events
-    const upcomingEvents = formData.month && formData.specialization
-        ? getUpcomingHealthEvents(formData.month, formData.specialization, 3)
-        : [];
-
-    const currentMonthEvents = formData.month && formData.specialization
-        ? getHealthEvents(formData.month, formData.specialization)
-        : [];
 
     const totalPublications = getTotalPublications(formData.formatCounts);
 
@@ -490,51 +553,63 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
             </div>
 
             {/* Health Calendar */}
-            <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="healthCalendar"
-                        checked={formData.useHealthCalendar}
-                        onChange={(e) =>
-                            setFormData({ ...formData, useHealthCalendar: e.target.checked })
-                        }
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="healthCalendar" className="text-sm font-medium text-gray-700">
-                        {t("medical.form.healthCalendar")}
-                    </label>
-                </div>
+            <div className="space-y-3 pt-2">
+                <Switch
+                    id="healthCalendar"
+                    label={t("medical.form.healthCalendar")}
+                    checked={formData.useHealthCalendar}
+                    onChange={(e) =>
+                        setFormData({ ...formData, useHealthCalendar: e.target.checked })
+                    }
+                />
 
-                {showUpcomingDates && currentMonthEvents.length > 0 && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <h4 className="text-sm font-semibold text-green-800 mb-2">
-                            📅 {formData.month}
-                        </h4>
+                {(showUpcomingDates && currentMonthEvents.length > 0) ? (
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {currentMonthEvents.map((event, idx) => (
-                            <div key={idx} className="mb-2 last:mb-0">
-                                <div className="text-sm font-medium text-green-900">{event.eventName}</div>
-                                <div className="text-xs text-green-700">{event.description}</div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {showUpcomingDates && upcomingEvents.length > 0 && currentMonthEvents.length === 0 && (
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="text-sm font-semibold text-blue-800 mb-2">
-                            📅 {t("medical.form.upcomingDates")}
-                        </h4>
-                        {upcomingEvents.map((event, idx) => (
-                            <div key={idx} className="mb-2 last:mb-0">
-                                <div className="text-sm font-medium text-blue-900">
-                                    {event.month}: {event.eventName}
+                            <div
+                                key={idx}
+                                onClick={() => setClickedEvent(event)}
+                                className="flex flex-col p-3 bg-green-50/50 border border-green-100 rounded-xl hover:bg-green-50 transition-colors cursor-pointer group"
+                            >
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm">📅</span>
+                                    <span className="text-sm font-semibold text-green-900 leading-tight group-hover:text-green-600 transition-colors">
+                                        {event.type === 'month' ? `[${t("health.calendar.type.month")}] ` : (event.date ? `[${event.date}] ` : "")}{event.eventName}
+                                    </span>
                                 </div>
-                                <div className="text-xs text-blue-700">{event.description}</div>
+                                <div className="text-xs text-green-700 line-clamp-2">
+                                    {event.description}
+                                </div>
                             </div>
                         ))}
                     </div>
-                )}
+                ) : (showUpcomingDates && upcomingEvents.length > 0) ? (
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {upcomingEvents.map((event, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => setClickedEvent(event)}
+                                className="flex flex-col p-3 bg-blue-50/50 border border-blue-100 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer group"
+                            >
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm">📅</span>
+                                    <span className="text-sm font-semibold text-blue-900 leading-tight group-hover:text-blue-600 transition-colors">
+                                        {event.type === 'month' ? `[${t("health.calendar.type.month")}] ` : (event.date ? `[${event.date}] ` : "")}{event.month}: {event.eventName}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-blue-700 line-clamp-2">
+                                    {event.description}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : showUpcomingDates ? (
+                    <div className="mt-3 p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
+                        <p className="text-sm text-gray-500">
+                            {t("health.calendar.noEvents")}
+                        </p>
+                    </div>
+                ) : null}
             </div>
 
             {/* Additional Context */}
@@ -569,6 +644,46 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
                     ⚠️ {t("medical.form.validationWarning")}
                 </p>
             )}
+            {/* Event Detail Modal */}
+            <Modal
+                isOpen={!!clickedEvent}
+                onClose={() => setClickedEvent(null)}
+                title={clickedEvent?.eventName || ""}
+                size="medium"
+            >
+                <div className="space-y-4 py-2">
+                    {clickedEvent?.date && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span className="font-semibold text-gray-900">{t("health.calendar.date")}:</span>
+                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-medium">
+                                {clickedEvent.date}
+                            </span>
+                        </div>
+                    )}
+
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-gray-900">{t("health.calendar.description")}</h4>
+                        <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-700 leading-relaxed italic border border-gray-100">
+                            "{clickedEvent?.description}"
+                        </div>
+                    </div>
+
+                    {clickedEvent?.notes && (
+                        <div className="space-y-1 pt-2">
+                            <h4 className="text-sm font-semibold text-gray-900">{t("health.calendar.notes")}</h4>
+                            <div className="p-4 bg-amber-50/50 rounded-xl text-sm text-amber-900 border border-amber-100">
+                                {clickedEvent.notes}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end pt-4">
+                        <Button variant="secondary" onClick={() => setClickedEvent(null)}>
+                            {t("ui.close")}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </form>
     );
 };

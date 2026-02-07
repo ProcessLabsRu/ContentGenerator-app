@@ -14,7 +14,7 @@ import { HealthCalendarEventModal } from "./HealthCalendarEventModal";
 import { ConfirmationModal } from "./ui/ConfirmationModal";
 import { Alert, AlertDescription } from "./ui/alert";
 import { useI18n } from "@/lib/i18n";
-import { CalendarDays, Table as TableIcon, RefreshCw, Plus, ChevronLeft, ChevronRight, Edit2, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarDays, Table as TableIcon, RefreshCw, Plus, ChevronLeft, ChevronRight, Edit2, Trash2, CheckCircle2, AlertCircle, Search, X } from "lucide-react";
 
 export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { t } = useI18n();
@@ -29,6 +29,7 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
     const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
     const [syncSuccess, setSyncSuccess] = useState<number | null>(null);
     const [syncError, setSyncError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // For Calendar View
     const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
@@ -40,7 +41,15 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
                 getHealthCalendarEvents(),
                 getMonths()
             ]);
-            setEvents(eventsData);
+
+            // Sort events by date ascending
+            const sortedEvents = [...eventsData].sort((a, b) => {
+                const dateA = new Date(a.date || "").getTime();
+                const dateB = new Date(b.date || "").getTime();
+                return dateA - dateB;
+            });
+
+            setEvents(sortedEvents);
             setMonths(monthsData.map(m => ({ id: m.id, name: m.name })));
         } catch (error) {
             console.error("Error fetching health calendar data:", error);
@@ -52,6 +61,31 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Scroll to today or next event in table view
+    useEffect(() => {
+        if (!isLoading && viewMode === 'table' && events.length > 0) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Find first event that is today or in the future
+            const targetEvent = events.find(e => {
+                const eventDate = new Date(e.date || "");
+                return eventDate >= today;
+            });
+
+            if (targetEvent) {
+                const element = document.getElementById(`event-row-${targetEvent.id}`);
+                if (element) {
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('bg-indigo-50/50');
+                        setTimeout(() => element.classList.remove('bg-indigo-50/50'), 3000);
+                    }, 500);
+                }
+            }
+        }
+    }, [isLoading, viewMode, events]);
 
     // Clear success message after 5 seconds
     useEffect(() => {
@@ -67,6 +101,7 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
     const handleSync = async () => {
         setIsSyncConfirmOpen(false);
         setIsSyncing(true);
+        setEvents([]); // Clear the list immediately so user doesn't see stale data
         setSyncSuccess(null);
         setSyncError(null);
         try {
@@ -123,11 +158,15 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
     };
 
     const filteredEvents = events.filter(e => {
+        const matchesSearch = searchQuery === "" ||
+            [e.eventName, e.month, e.description, e.source, e.date]
+                .some(field => field?.toString().toLowerCase().includes(searchQuery.toLowerCase()));
+
         if (viewMode === 'calendar') {
             const monthName = months[currentMonthIndex]?.name;
-            return e.month === monthName;
+            return e.month === monthName && matchesSearch;
         }
-        return true;
+        return matchesSearch;
     });
 
     return (
@@ -142,6 +181,27 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <div className="relative w-64 mr-2">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            className="block w-full pl-9 pr-8 py-1.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all shadow-sm"
+                            placeholder={t("posts.search")}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute inset-y-0 right-0 pr-2 flex items-center hover:text-gray-700 transition-colors"
+                            >
+                                <X className="h-4 w-4 text-gray-400" />
+                            </button>
+                        )}
+                    </div>
+
                     <div className="flex bg-gray-100 rounded-lg p-1 mr-2">
                         <button
                             onClick={() => setViewMode('table')}
@@ -203,57 +263,69 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
                     </Alert>
                 )}
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-64">
+                {isLoading || isSyncing ? (
+                    <div className="flex items-center justify-center h-64 flex-col gap-4">
                         <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+                        {isSyncing && <p className="text-gray-500 animate-pulse">{t("health.calendar.syncing")}</p>}
                     </div>
                 ) : viewMode === 'table' ? (
-                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.month")}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.date")}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.eventName")}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.source")}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.description")}</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t("health.calendar.actions")}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {events.map((event) => (
-                                    <tr
-                                        key={event.id}
-                                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                        onClick={() => { setSelectedEvent(event); setIsModalOpen(true); }}
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{event.month}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(event.date)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-700">{event.eventName}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-tighter ${event.source === 'official'
-                                                ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                                : 'bg-amber-100 text-amber-700 border border-amber-200'
-                                                }`}>
-                                                {event.source === 'official' ? t("health.calendar.source.official") : t("health.calendar.source.manual")}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={event.description}>
-                                            {event.description || "—"}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id!); }}
-                                                className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-colors"
-                                                title={t("health.calendar.deleteConfirm")}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </td>
+                    <div className="space-y-4">
+
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th className="sticky top-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.month")}</th>
+                                        <th className="sticky top-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.date")}</th>
+                                        <th className="sticky top-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.eventName")}</th>
+                                        <th className="sticky top-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.source")}</th>
+                                        <th className="sticky top-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.description")}</th>
+                                        <th className="sticky top-0 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10">{t("health.calendar.actions")}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredEvents.map((event) => (
+                                        <tr
+                                            key={event.id}
+                                            id={`event-row-${event.id}`}
+                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            onClick={() => { setSelectedEvent(event); setIsModalOpen(true); }}
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{event.month}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(event.date)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-700">{event.eventName}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-tighter ${event.source === 'official'
+                                                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                                    : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                                    }`}>
+                                                    {event.source === 'official' ? t("health.calendar.source.official") : t("health.calendar.source.manual")}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={event.description}>
+                                                {event.description || "—"}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id!); }}
+                                                    className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-colors"
+                                                    title={t("health.calendar.deleteConfirm")}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredEvents.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500 font-medium">
+                                                No events found for "{searchQuery}"
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-6">
@@ -276,7 +348,7 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
                                         className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all border-l-4 border-l-indigo-500 cursor-pointer"
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{event.date || event.month}</span>
+                                            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{formatDate(event.date)}</span>
                                             <div className="flex gap-1">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id!); }}
@@ -310,6 +382,7 @@ export const HealthCalendarView: React.FC<{ onBack: () => void }> = ({ onBack })
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSaveEvent}
+                onDelete={handleDeleteEvent}
                 months={months}
             />
 

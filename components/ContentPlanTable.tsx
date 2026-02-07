@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 
 interface ContentPlanTableProps {
   items: ContentPlanItem[];
-  onSelectionChange?: (selectedIds: string[]) => void;
+  onStatusChange?: (itemId: string, newStatus: ContentPlanItem["status"]) => void;
   onItemClick?: (item: ContentPlanItem) => void;
   visibleColumns?: {
     format?: boolean;
@@ -22,22 +22,17 @@ const statusColors: Record<
   ContentPlanItem["status"],
   { bg: string; text: string }
 > = {
-  draft: { bg: "bg-gray-100", text: "text-gray-800" },
-  approved: { bg: "bg-blue-100", text: "text-blue-800" },
-  generated: { bg: "bg-green-100", text: "text-green-800" },
+  draft: { bg: "bg-gray-100", text: "text-gray-600" },
+  approved: { bg: "bg-brand-red/10", text: "text-brand-red" },
+  generated: { bg: "bg-brand-blue/10", text: "text-brand-blue" },
 };
 
 const formatBadgeColors: Record<string, { bg: string; text: string }> = {
-  "Blog Post": { bg: "bg-purple-100", text: "text-purple-800" },
-  Video: { bg: "bg-red-100", text: "text-red-800" },
-  Infographic: { bg: "bg-yellow-100", text: "text-yellow-800" },
-  "Case Study": { bg: "bg-indigo-100", text: "text-indigo-800" },
-  "Social Media Post": { bg: "bg-pink-100", text: "text-pink-800" },
-  Podcast: { bg: "bg-orange-100", text: "text-orange-800" },
-  Webinar: { bg: "bg-teal-100", text: "text-teal-800" },
-  "Email Newsletter": { bg: "bg-cyan-100", text: "text-cyan-800" },
-  Whitepaper: { bg: "bg-slate-100", text: "text-slate-800" },
-  "E-book": { bg: "bg-emerald-100", text: "text-emerald-800" },
+  "Reels": { bg: "bg-purple-100", text: "text-purple-800" },
+  "Carrossel": { bg: "bg-red-100", text: "text-red-800" },
+  "Post Estático": { bg: "bg-yellow-100", text: "text-yellow-800" },
+  "Stories": { bg: "bg-indigo-100", text: "text-indigo-800" },
+  "Live/Collab": { bg: "bg-pink-100", text: "text-pink-800" },
 };
 
 const getFormatColors = (format: string) => {
@@ -48,11 +43,10 @@ const getFormatColors = (format: string) => {
 
 export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
   items,
-  onSelectionChange,
+  onStatusChange,
   onItemClick,
   visibleColumns,
 }) => {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { t, intlLocale } = useI18n();
   const statusLabelKey = {
     draft: "status.draft",
@@ -84,32 +78,16 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
   const showCta = visibleColumns?.cta ?? false;
   const showContentOutline = visibleColumns?.contentOutline ?? false;
 
-  const handleCheckboxChange = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedIds(newSelected);
-    if (onSelectionChange) {
-      onSelectionChange(Array.from(newSelected));
-    }
-  };
+  const handleStatusToggle = (e: React.MouseEvent, item: ContentPlanItem) => {
+    e.stopPropagation();
+    if (!onStatusChange) return;
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = new Set(items.map((item) => item.id));
-      setSelectedIds(allIds);
-      if (onSelectionChange) {
-        onSelectionChange(Array.from(allIds));
-      }
-    } else {
-      setSelectedIds(new Set());
-      if (onSelectionChange) {
-        onSelectionChange([]);
-      }
-    }
+    // Normalize to lowercase for comparison
+    const currentStatus = item.status.toLowerCase();
+
+    // Toggle: if it's draft or generated, approve it. Otherwise, set back to draft.
+    const newStatus = (currentStatus === 'draft' || currentStatus === 'generated') ? 'approved' : 'draft';
+    onStatusChange(item.id, newStatus);
   };
 
   if (items.length === 0) {
@@ -124,29 +102,20 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto -mx-4 sm:-mx-8 md:mx-0">
+    <div>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+        <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
           <tr>
-            <th scope="col" className="w-12 px-4 sm:px-6 py-3 text-left">
-              <input
-                type="checkbox"
-                checked={selectedIds.size === items.length && items.length > 0}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                aria-label={t("table.selectAll")}
-              />
-            </th>
             <th
               scope="col"
-              className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
             >
               {t("table.columns.title")}
             </th>
             {showFormat && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.format")}
               </th>
@@ -154,7 +123,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             {showStatus && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.status")}
               </th>
@@ -162,7 +131,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             {showPublishDate && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.publishDate")}
               </th>
@@ -170,7 +139,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             {showPainPoint && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.painPoint")}
               </th>
@@ -178,7 +147,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             {showCta && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.cta")}
               </th>
@@ -186,7 +155,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             {showContentOutline && (
               <th
                 scope="col"
-                className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="sticky top-0 px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 z-10"
               >
                 {t("table.columns.contentOutline")}
               </th>
@@ -200,24 +169,12 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
             return (
               <tr
                 key={item.id}
-                className={`hover:bg-gray-50 transition-colors ${onItemClick ? "cursor-pointer" : ""
+                className={`hover:bg-gray-50 transition-colors group ${onItemClick ? "cursor-pointer" : ""
                   }`}
                 onClick={() => onItemClick?.(item)}
               >
-                <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(item.id)}
-                    onChange={(e) =>
-                      handleCheckboxChange(item.id, e.target.checked)
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    aria-label={t("table.selectItem", { title: item.title })}
-                  />
-                </td>
                 <td className="px-4 sm:px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900 max-w-xs sm:max-w-none truncate sm:truncate-none">
+                  <div className="text-sm font-semibold text-brand-dark max-w-xs sm:max-w-none truncate sm:truncate-none group-hover:text-brand-red transition-colors">
                     {item.title}
                   </div>
                 </td>

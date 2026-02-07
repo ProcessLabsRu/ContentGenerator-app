@@ -23,6 +23,7 @@ import {
     createHealthCalendarEvent as pbCreateHealthCalendarEvent,
     updateHealthCalendarEvent as pbUpdateHealthCalendarEvent,
     deleteHealthCalendarEvent as pbDeleteHealthCalendarEvent,
+    getSpecializations as pbGetSpecializations,
 } from '../pocketbase-service';
 import { PBGeneration, PBContentPlanItem } from '../pocketbase-types';
 
@@ -57,7 +58,7 @@ function pbItemToItem(pbItem: PBContentPlanItem): ContentPlanItem {
         pain_point: pbItem.painPoint || '',
         content_outline: pbItem.contentOutline || '',
         cta: pbItem.cta || '',
-        status: pbItem.status as ContentPlanStatus,
+        status: (pbItem.status?.toLowerCase() || 'draft') as ContentPlanStatus,
         publish_date: pbItem.publishDate || null,
         created_at: pbItem.created,
         updated_at: pbItem.updated,
@@ -146,6 +147,13 @@ export async function getItemsByGenerationId(generationId: string): Promise<Cont
     const result = await getContentPlanItems(generationId);
     return result.items.map(pbItemToItem);
 }
+export async function getAllContentPlanItems(page = 1, perPage = 100): Promise<{ items: ContentPlanItem[], totalItems: number }> {
+    const result = await getContentPlanItems(undefined, page, perPage);
+    return {
+        items: result.items.map(pbItemToItem),
+        totalItems: result.totalItems
+    };
+}
 
 export async function updateItemStatus(
     itemId: string,
@@ -190,20 +198,21 @@ function pbHealthEventToHealthEvent(
         eventName: pbEvent.eventName,
         description: pbEvent.description,
         date: pbEvent.date,
-        year: pbEvent.year,
         color: pbEvent.color,
         isActive: pbEvent.isActive,
         specializationId: pbEvent.specializationId,
         source: pbEvent.source,
         notes: pbEvent.notes,
+        type: pbEvent.type,
+        isRecurring: pbEvent.isRecurring,
         created_at: pbEvent.created,
         updated_at: pbEvent.updated,
     };
 }
 
-export async function getHealthCalendarEvents(): Promise<import('../types').HealthCalendarEvent[]> {
+export async function getHealthCalendarEvents(monthId?: string, specializationId?: string): Promise<import('../types').HealthCalendarEvent[]> {
     const months = await getMonths();
-    const result = await pbGetHealthCalendarEvents(1, 1000);
+    const result = await pbGetHealthCalendarEvents(1, 1000, monthId, specializationId);
     return result.items.map((e: import('../pocketbase-types').PBHealthCalendarEvent) => pbHealthEventToHealthEvent(e, months));
 }
 
@@ -230,4 +239,8 @@ export async function deleteHealthCalendarEvent(id: string): Promise<void> {
 
 export async function getAllMonths(): Promise<import('../pocketbase-types').PBMonth[]> {
     return getMonths();
+}
+
+export async function getAllSpecializations(): Promise<import('../pocketbase-types').PBMedicalSpecialization[]> {
+    return pbGetSpecializations();
 }

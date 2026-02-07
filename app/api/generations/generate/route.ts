@@ -19,8 +19,25 @@ export async function POST(request: NextRequest) {
         // 1. Инициализация LLM клиента
         const llmClient = createLLMClient();
 
-        // 2. Подготовка промптов
-        const userPrompt = generateUserPrompt(formData);
+        // 2. Fetch health events if needed
+        let events: any[] = [];
+        if (formData.useHealthCalendar) {
+            try {
+                const { getMonths, getAllSpecializations, getHealthCalendarEvents } = await import('@/lib/db/adapter');
+                const [dbMonths, dbSpecializations] = await Promise.all([getMonths(), getAllSpecializations()]);
+                const monthRecord = dbMonths.find(m => m.name === formData.month);
+                const specRecord = dbSpecializations.find(s => s.name === formData.specialization);
+
+                if (monthRecord) {
+                    events = await getHealthCalendarEvents(monthRecord.id, specRecord?.id);
+                }
+            } catch (error) {
+                console.error('Error fetching events for LLM:', error);
+            }
+        }
+
+        // 3. Подготовка промптов
+        const userPrompt = generateUserPrompt(formData, events);
         const messages = [
             { role: 'system' as const, content: SYSTEM_PROMPT },
             { role: 'user' as const, content: userPrompt }

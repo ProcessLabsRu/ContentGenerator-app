@@ -73,13 +73,13 @@ export async function PUT(
 
     // Update single item status if itemId is provided
     if (body.itemId && body.status) {
-      const status = body.status as ContentPlanStatus;
+      const status = (body.status as string).toLowerCase() as ContentPlanStatus;
 
-      if (!['draft', 'selected', 'generated'].includes(status)) {
+      if (!['draft', 'approved', 'generated'].includes(status)) {
         return NextResponse.json<ApiErrorResponse>(
           {
             error: {
-              message: 'Invalid status. Must be one of: draft, selected, generated',
+              message: 'Invalid status. Must be one of: draft, approved, generated',
               code: 'VALIDATION_ERROR',
             },
           },

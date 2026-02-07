@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Database } from 'lucide-react';
 
 type ConnectionStatus = 'checking' | 'connected' | 'error' | 'unknown';
 
@@ -14,10 +15,7 @@ export function ConnectionIndicator({ className = '' }: ConnectionIndicatorProps
 
     useEffect(() => {
         checkConnection();
-
-        // Проверяем подключение каждые 30 секунд
         const interval = setInterval(checkConnection, 30000);
-
         return () => clearInterval(interval);
     }, []);
 
@@ -25,68 +23,28 @@ export function ConnectionIndicator({ className = '' }: ConnectionIndicatorProps
         try {
             const response = await fetch('/api/health/pocketbase');
             const data = await response.json();
-
             setUrl(data.url || '');
-
-            if (data.status === 'ok') {
-                setStatus('connected');
-            } else {
-                setStatus('error');
-            }
+            setStatus(data.status === 'ok' ? 'connected' : 'error');
         } catch (error) {
-            console.error('Connection check failed:', error);
             setStatus('error');
         }
     };
 
     const getStatusColor = () => {
         switch (status) {
-            case 'checking':
-                return 'bg-yellow-500';
-            case 'connected':
-                return 'bg-green-500';
-            case 'error':
-                return 'bg-red-500';
-            default:
-                return 'bg-gray-400';
+            case 'checking': return 'text-yellow-400';
+            case 'connected': return 'text-green-400';
+            case 'error': return 'text-red-400';
+            default: return 'text-gray-400';
         }
     };
 
-    const getStatusText = () => {
-        switch (status) {
-            case 'checking':
-                return 'Conectando...';
-            case 'error':
-                return 'Erro de conexão';
-            default:
-                return '';
-        }
-    };
-
-    // При успешном подключении показываем только точку
-    if (status === 'connected') {
-        return (
-            <div
-                className={`flex items-center ${className}`}
-                title={url || 'PocketBase conectado'}
-            >
-                <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor()}`} />
-            </div>
-        );
-    }
-
-    // При ошибке или проверке показываем точку с текстом
     return (
         <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 ${className}`}
+            className={`flex items-center ${className}`}
             title={url || 'PocketBase'}
         >
-            <div className="flex items-center gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${status === 'checking' ? 'animate-pulse' : ''}`} />
-                <span className="text-xs font-medium text-gray-700">
-                    {getStatusText()}
-                </span>
-            </div>
+            <Database className={`w-5 h-5 ${getStatusColor()} transition-colors duration-300`} />
         </div>
     );
 }

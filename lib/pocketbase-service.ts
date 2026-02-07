@@ -210,11 +210,22 @@ export async function checkPocketBaseConnection(): Promise<boolean> {
 
 export async function getHealthCalendarEvents(
     page = 1,
-    perPage = 500
+    perPage = 500,
+    monthId?: string,
+    specializationId?: string
 ): Promise<{ items: PBHealthCalendarEvent[]; totalItems: number }> {
     const pb = getPocketBase();
+    const filters: string[] = [];
+
+    if (monthId) filters.push(`monthId = "${monthId}"`);
+    if (specializationId) {
+        filters.push(`(specializationId = "${specializationId}" || specializationId = null || specializationId = "")`);
+    }
+
     const result = await pb.collection(COLLECTIONS.HEALTH_CALENDAR_EVENTS).getList<PBHealthCalendarEvent>(page, perPage, {
-        sort: 'monthId,date',
+        sort: 'date',
+        filter: filters.join(' && '),
+        expand: 'monthId,specializationId'
     });
     return {
         items: result.items,
@@ -245,6 +256,12 @@ export async function deleteHealthCalendarEvent(id: string): Promise<boolean> {
 export async function getMonths(): Promise<import('./pocketbase-types').PBMonth[]> {
     const pb = getPocketBase();
     const result = await pb.collection(COLLECTIONS.MONTHS).getFullList<import('./pocketbase-types').PBMonth>();
+    return result;
+}
+
+export async function getSpecializations(): Promise<import('./pocketbase-types').PBMedicalSpecialization[]> {
+    const pb = getPocketBase();
+    const result = await pb.collection(COLLECTIONS.MEDICAL_SPECIALIZATIONS).getFullList<import('./pocketbase-types').PBMedicalSpecialization>();
     return result;
 }
 

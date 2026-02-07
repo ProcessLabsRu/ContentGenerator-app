@@ -120,6 +120,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
             onValueChange={(value) =>
               setFormState((prev) => ({ ...prev, format: value as any }))
             }
+            className="h-[46px]"
           />
           <Select
             label={t("modal.labels.status")}
@@ -131,6 +132,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
                 status: value as ContentPlanStatus,
               }))
             }
+            className="h-[46px]"
           />
           <Input
             label={t("modal.labels.publishDate")}
@@ -142,6 +144,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
                 publish_date: e.target.value,
               }))
             }
+            className="h-[46px]"
           />
         </div>
         <Textarea
