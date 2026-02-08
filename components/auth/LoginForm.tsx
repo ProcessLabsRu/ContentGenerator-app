@@ -95,10 +95,6 @@ export function LoginForm() {
                             {loading ? t('auth.login.buttonLoading') : t('auth.login.button')}
                         </Button>
 
-                        <div className="text-sm text-gray-500 mt-4">
-                            <p>{t('auth.login.testCredentials')}</p>
-                            <p className="font-mono text-xs mt-1">test@example.com / Test123!</p>
-                        </div>
                     </form>
                 </CardContent>
             </Card>
