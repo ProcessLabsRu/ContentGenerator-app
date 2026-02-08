@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import {
   getGenerationById,
   updateGeneration,
@@ -73,7 +75,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Error updating generation:', error);
-    
+
     if (error.message?.includes('not found')) {
       return NextResponse.json<ApiErrorResponse>(
         {
@@ -112,7 +114,7 @@ export async function DELETE(
     );
   } catch (error: any) {
     console.error('Error deleting generation:', error);
-    
+
     if (error.message?.includes('not found')) {
       return NextResponse.json<ApiErrorResponse>(
         {

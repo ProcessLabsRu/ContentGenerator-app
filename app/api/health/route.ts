@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getDatabaseConfig } from '@/lib/config';
 import { checkPocketBaseConnection } from '@/lib/pocketbase-service';
 

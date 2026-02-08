@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { generateHealthEventDescription } from '@/lib/llm/health-parser';
 
 export async function POST(req: Request) {

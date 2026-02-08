@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getMonths, createHealthCalendarEvent } from '@/lib/db/adapter';
 import { scrapeHealthCalendar } from '@/lib/utils/health-calendar-scraper';
 import { parseHealthEventsAI } from '@/lib/llm/health-parser';
