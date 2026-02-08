@@ -38,7 +38,7 @@ export interface PBGeneration extends PocketBaseRecord {
     useHealthCalendar?: boolean;
 
     // Status
-    status: 'draft' | 'generated' | 'completed';
+    status: 'Rascunho' | 'Gerado' | 'Aprovado';
 
     // Timestamps
     generatedAt?: string;
@@ -55,7 +55,7 @@ export interface PBContentPlanItem extends PocketBaseRecord {
     // Content details
     title: string;
     format: 'Reels' | 'Carrossel' | 'Post Estático' | 'Stories' | 'Live/Collab';
-    status: 'draft' | 'approved' | 'generated';
+    status: 'Rascunho' | 'Gerado' | 'Aprovado';
     publishDate?: string;
 
     // Content structure

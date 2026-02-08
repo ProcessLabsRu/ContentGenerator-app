@@ -986,8 +986,8 @@
         "type": "select",
         "values": [
           "Rascunho",
-          "Gerado",
-          "Aprovado"
+          "Aprovado",
+          "Gerado"
         ]
       },
       {

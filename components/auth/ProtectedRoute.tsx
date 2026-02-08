@@ -14,7 +14,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
                     <p className="mt-4 text-gray-600">Загрузка...</p>
@@ -29,7 +29,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
     if (requireAdmin && !isAdmin) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-red-600 mb-2">Доступ запрещен</h1>
                     <p className="text-gray-600">У вас нет прав для просмотра этой страницы.</p>
