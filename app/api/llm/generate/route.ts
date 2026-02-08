@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { createLLMClient, LLMMessage } from '@/lib/llm';
 
 export async function POST(request: NextRequest) {

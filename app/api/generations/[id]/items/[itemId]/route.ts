@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { deleteContentPlanItem } from '@/lib/db/adapter';
 import { ApiErrorResponse } from '@/lib/types';
 
@@ -16,7 +18,7 @@ export async function DELETE(
     );
   } catch (error: any) {
     console.error('Error deleting content plan item:', error);
-    
+
     if (error.message?.includes('not found')) {
       return NextResponse.json<ApiErrorResponse>(
         {

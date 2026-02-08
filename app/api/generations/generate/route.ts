@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { createLLMClient } from '@/lib/llm';
 import { SYSTEM_PROMPT, generateUserPrompt } from '@/lib/llm/prompts';
 import { createGeneration } from '@/lib/db/adapter';
