@@ -1,4 +1,4 @@
-export type ContentPlanStatus = "draft" | "approved" | "generated";
+export type ContentPlanStatus = "Rascunho" | "Aprovado" | "Gerado";
 
 export interface ContentPlanItem {
   id: string;

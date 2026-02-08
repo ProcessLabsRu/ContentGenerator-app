@@ -985,9 +985,9 @@
         "system": false,
         "type": "select",
         "values": [
-          "draft",
-          "generated",
-          "approved"
+          "Rascunho",
+          "Gerado",
+          "Aprovado"
         ]
       },
       {

@@ -11,7 +11,7 @@ Each object should have the following fields:
 - pain_point: The patient's pain point or question being addressed
 - content_outline: A brief outline of what to cover in the content (2-3 sentences)
 - cta: Call to Action (e.g., "Schedule an appointment", "Share this post")
-- status: "draft"
+- status: "Rascunho"
 - publish_date: Suggest a specific date as "YYYY-MM-DD" (e.g. "2024-10-15")
 
 Do not include any markdown formatting or explanations outside the JSON array. return ONLY the JSON.

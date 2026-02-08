@@ -27,7 +27,7 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [approvalFilter, setApprovalFilter] = useState<
-    "all" | "approved" | "draft"
+    "all" | "Aprovado" | "Rascunho"
   >("all");
   const [showSettings, setShowSettings] = useState(false);
   const [activeItem, setActiveItem] = useState<ContentPlanItem | null>(null);
@@ -76,7 +76,7 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
       setViewMode(savedViewMode);
     }
 
-    if (savedFilter === 'all' || savedFilter === 'approved' || savedFilter === 'draft') {
+    if (savedFilter === 'all' || savedFilter === 'Aprovado' || savedFilter === 'Rascunho') {
       setApprovalFilter(savedFilter);
     }
   }, []);
@@ -247,9 +247,9 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
     const itemStatus = item.status?.toLowerCase() || "";
     const matchesStatus =
       approvalFilter === "all" ||
-      (approvalFilter === "approved"
-        ? itemStatus === "approved"
-        : (itemStatus === "draft" || itemStatus === "generated"));
+      (approvalFilter === "Aprovado"
+        ? itemStatus === "aprovado"
+        : (itemStatus === "rascunho" || itemStatus === "gerado"));
 
     // Apply search filter
     const matchesSearch =
@@ -340,12 +340,12 @@ export const PostsList: React.FC<PostsListProps> = ({ generation }) => {
                 <select
                   aria-label={t("table.filter.approval")}
                   value={approvalFilter}
-                  onChange={(e) => setApprovalFilter(e.target.value as "all" | "approved" | "draft")}
+                  onChange={(e) => setApprovalFilter(e.target.value as "all" | "Aprovado" | "Rascunho")}
                   className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-brand-dark shadow-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 >
                   <option value="all">{t("table.filter.all")}</option>
-                  <option value="approved">{t("status.approved")}</option>
-                  <option value="draft">{t("status.draft")}</option>
+                  <option value="Aprovado">{t("status.aprovado")}</option>
+                  <option value="Rascunho">{t("status.rascunho")}</option>
                 </select>
               )}
               <button

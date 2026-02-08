@@ -71,7 +71,7 @@ export function normalizeLLMResponse(items: any[], requestedMonth: string): Part
             pain_point: painPoint,
             content_outline: contentOutline,
             cta,
-            status: "draft" as const,
+            status: "Rascunho" as const,
             publish_date: publishDate,
         };
     });

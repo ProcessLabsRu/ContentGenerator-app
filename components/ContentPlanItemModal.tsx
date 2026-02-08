@@ -28,9 +28,9 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
   const { t } = useI18n();
   // ... (rest of the component state stays the same)
   const statusOptions: { value: ContentPlanStatus; label: string }[] = [
-    { value: "draft", label: t("status.draft") },
-    { value: "approved", label: t("status.approved") },
-    { value: "generated", label: t("status.generated") },
+    { value: "Rascunho", label: t("status.rascunho") },
+    { value: "Aprovado", label: t("status.aprovado") },
+    { value: "Gerado", label: t("status.gerado") },
   ];
 
   const formatOptions = [
@@ -43,7 +43,7 @@ export const ContentPlanItemModal: React.FC<ContentPlanItemModalProps> = ({
   const [formState, setFormState] = useState({
     title: "",
     format: "" as 'Reels' | 'Carrossel' | 'Post Estático' | 'Stories' | 'Live/Collab',
-    status: "draft" as ContentPlanStatus,
+    status: "Rascunho" as ContentPlanStatus,
     publish_date: "",
     pain_point: "",
     content_outline: "",

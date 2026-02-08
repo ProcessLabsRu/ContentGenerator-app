@@ -15,7 +15,7 @@ const formats: InstagramFormat[] = [
   "Live/Collab",
 ];
 
-const statuses: ContentPlanItem["status"][] = ["draft"];
+const statuses: ContentPlanItem["status"][] = ["Rascunho"];
 
 const generateTitle = (
   specialization: string,

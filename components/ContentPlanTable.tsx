@@ -22,9 +22,9 @@ const statusColors: Record<
   ContentPlanItem["status"],
   { bg: string; text: string }
 > = {
-  draft: { bg: "bg-gray-100", text: "text-gray-600" },
-  approved: { bg: "bg-brand-red/10", text: "text-brand-red" },
-  generated: { bg: "bg-brand-blue/10", text: "text-brand-blue" },
+  Rascunho: { bg: "bg-gray-100", text: "text-gray-600" },
+  Aprovado: { bg: "bg-brand-red/10", text: "text-brand-red" },
+  Gerado: { bg: "bg-brand-blue/10", text: "text-brand-blue" },
 };
 
 const formatBadgeColors: Record<string, { bg: string; text: string }> = {
@@ -49,9 +49,9 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
 }) => {
   const { t, intlLocale } = useI18n();
   const statusLabelKey = {
-    draft: "status.draft",
-    approved: "status.approved",
-    generated: "status.generated",
+    Rascunho: "status.rascunho",
+    Aprovado: "status.aprovado",
+    Gerado: "status.gerado",
   } as const;
   const formatPublishDate = (value?: string | null) => {
     if (!value) return "—";
@@ -82,11 +82,11 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
     e.stopPropagation();
     if (!onStatusChange) return;
 
-    // Normalize to lowercase for comparison
+    // Normalize for comparison
     const currentStatus = item.status.toLowerCase();
 
-    // Toggle: if it's draft or generated, approve it. Otherwise, set back to draft.
-    const newStatus = (currentStatus === 'draft' || currentStatus === 'generated') ? 'approved' : 'draft';
+    // Toggle: if it's rascunho or gerado, approve it. Otherwise, set back to rascunho.
+    const newStatus: ContentPlanItem["status"] = (currentStatus === 'rascunho' || currentStatus === 'gerado') ? 'Aprovado' : 'Rascunho';
     onStatusChange(item.id, newStatus);
   };
 
@@ -164,7 +164,8 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {items.map((item) => {
-            const statusColor = statusColors[item.status];
+            const status = (item.status === "Aprovado" || item.status === "Gerado") ? item.status : "Rascunho";
+            const statusColor = statusColors[status];
             const formatColor = getFormatColors(item.format);
             return (
               <tr
@@ -192,7 +193,7 @@ export const ContentPlanTable: React.FC<ContentPlanTableProps> = ({
                     <span
                       className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor.bg} ${statusColor.text}`}
                     >
-                      {t(statusLabelKey[item.status])}
+                      {t(statusLabelKey[status])}
                     </span>
                   </td>
                 )}

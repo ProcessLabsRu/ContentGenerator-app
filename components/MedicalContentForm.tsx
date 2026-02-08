@@ -365,9 +365,6 @@ export const MedicalContentForm: React.FC<MedicalContentFormProps> = ({
                 <h2 className="text-xl font-bold text-gray-900">
                     {t("medical.form.title")}
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                    {t("medical.form.poweredBy")}
-                </p>
             </div>
 
             {/* Plan Title */}

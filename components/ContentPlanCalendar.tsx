@@ -79,21 +79,21 @@ export const ContentPlanCalendar: React.FC<ContentPlanCalendarProps> = ({
     ContentPlanItem["status"],
     { bg: string; text: string }
   > = {
-    draft: { bg: "bg-gray-100", text: "text-gray-700" },
-    approved: { bg: "bg-blue-100", text: "text-blue-700" },
-    generated: { bg: "bg-green-100", text: "text-green-700" },
+    Rascunho: { bg: "bg-gray-100", text: "text-gray-700" },
+    Aprovado: { bg: "bg-blue-100", text: "text-blue-700" },
+    Gerado: { bg: "bg-green-100", text: "text-green-700" },
   };
   const statusLabelKey = {
-    draft: "status.draft",
-    approved: "status.approved",
-    generated: "status.generated",
+    Rascunho: "status.rascunho",
+    Aprovado: "status.aprovado",
+    Gerado: "status.gerado",
   } as const;
 
   const { itemsByDate, undatedItems } = useMemo(() => {
     const map = new Map<string, ContentPlanItem[]>();
     const withoutDate: ContentPlanItem[] = [];
 
-    items.filter((item) => item.status === "approved").forEach((item) => {
+    items.filter((item) => (item.status as string) === "Aprovado" || (item.status as string) === "approved").forEach((item) => {
       const parsed = parsePublishDate(item.publish_date);
       if (!parsed) {
         withoutDate.push(item);
@@ -286,13 +286,16 @@ export const ContentPlanCalendar: React.FC<ContentPlanCalendarProps> = ({
                         {item.cta}
                       </div>
                     )}
-                    {showStatus && (
-                      <span
-                        className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[item.status].bg} ${statusColors[item.status].text}`}
-                      >
-                        {t(statusLabelKey[item.status])}
-                      </span>
-                    )}
+                    {showStatus && (() => {
+                      const status = (item.status === "Aprovado" || item.status === "Gerado") ? item.status : "Rascunho";
+                      return (
+                        <span
+                          className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[status].bg} ${statusColors[status].text}`}
+                        >
+                          {t(statusLabelKey[status])}
+                        </span>
+                      );
+                    })()}
                   </div>
                 ))}
                 {dayItems.length > 3 && (
@@ -341,13 +344,16 @@ export const ContentPlanCalendar: React.FC<ContentPlanCalendarProps> = ({
                     {item.cta}
                   </div>
                 )}
-                {showStatus && (
-                  <span
-                    className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[item.status].bg} ${statusColors[item.status].text}`}
-                  >
-                    {t(statusLabelKey[item.status])}
-                  </span>
-                )}
+                {showStatus && (() => {
+                  const status = (item.status === "Aprovado" || item.status === "Gerado") ? item.status : "Rascunho";
+                  return (
+                    <span
+                      className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[status].bg} ${statusColors[status].text}`}
+                    >
+                      {t(statusLabelKey[status])}
+                    </span>
+                  );
+                })()}
               </div>
             ))}
           </div>

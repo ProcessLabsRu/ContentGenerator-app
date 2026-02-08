@@ -38,7 +38,7 @@ export async function createGeneration(
             : (typeof formData.formatCounts === 'object' && formData.formatCounts !== null
                 ? Object.values(formData.formatCounts).reduce((sum, val) => sum + (Number(val) || 0), 0)
                 : 1),
-        status: 'draft',
+        status: 'Rascunho',
     });
 
     return record;

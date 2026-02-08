@@ -58,7 +58,7 @@ function pbItemToItem(pbItem: PBContentPlanItem): ContentPlanItem {
         pain_point: pbItem.painPoint || '',
         content_outline: pbItem.contentOutline || '',
         cta: pbItem.cta || '',
-        status: (pbItem.status?.toLowerCase() || 'draft') as ContentPlanStatus,
+        status: (pbItem.status || 'Rascunho') as ContentPlanStatus,
         publish_date: pbItem.publishDate || null,
         created_at: pbItem.created,
         updated_at: pbItem.updated,

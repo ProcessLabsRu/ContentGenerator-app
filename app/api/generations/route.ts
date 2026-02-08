@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       pain_point: item.pain_point || item.painPoint || '',
       content_outline: item.content_outline || item.contentOutline || '',
       cta: item.cta || '',
-      status: item.status || 'draft',
+      status: item.status || 'Rascunho',
       publish_date: item.publish_date || item.publishDate || null,
     }));
 
