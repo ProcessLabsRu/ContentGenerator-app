@@ -178,7 +178,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const inputId = id || (label ? `input-${label.toLowerCase().replace(/\s+/g, "-")}` : undefined);
 
     return (
-        <div className={`w-full ${className}`}>
+        <div className="w-full">
             {label && (
                 <label
                     htmlFor={inputId}
@@ -197,6 +197,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 ${error ? "border-red-500" : "border-gray-300"}
                 ${!displayDate ? "text-gray-400" : "text-gray-900"}
                 bg-white
+                ${className}
             `}
                     >
                         <span>{displayDate || placeholder || "Selecione uma data"}</span>
