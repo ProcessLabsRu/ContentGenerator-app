@@ -6,6 +6,7 @@ import { Input } from "./ui/Input";
 import { Textarea } from "./ui/Textarea";
 import { Select } from "./ui/Select";
 import { Button } from "./ui/Button";
+import { DatePicker } from "./ui/DatePicker";
 import { HealthCalendarEvent } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 import { Trash2 } from "lucide-react";
@@ -173,12 +174,12 @@ export const HealthCalendarEventModal: React.FC<HealthCalendarEventModalProps> =
                         placeholder={t("ui.selectOption")}
                     />
                     {formData.type === 'day' ? (
-                        <Input
+                        <DatePicker
                             label={t("health.calendar.date")}
-                            type="date"
                             value={formData.date}
-                            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                            onDateChange={(val) => setFormData(prev => ({ ...prev, date: val }))}
                             className="h-[46px]"
+                            placeholder="DD/MM/AAAA"
                         />
                     ) : (
                         <div className="flex items-center h-[46px] px-3 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-500">
